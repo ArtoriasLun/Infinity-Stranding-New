@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ASCII Space Trader</title>
+    <style>
+        body {
+            font-family: monospace;
+            background-color: #000;
+            color: #0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        #map {
+            border: 1px solid #0f0;
+            padding: 10px;
+            margin-bottom: 10px;
+            height: 200px;
+            overflow: auto;
+            white-space: pre;
+        }
+        #status {
+            border: 1px solid #0f0;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        #market {
+            border: 1px solid #0f0;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        #actions {
+            border: 1px solid #0f0;
+            padding: 10px;
+        }
+        button {
+            background-color: #000;
+            color: #0f0;
+            border: 1px solid #0f0;
+            padding: 5px 10px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0f0;
+            color: #000;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #0f0;
+            padding: 5px;
+            text-align: left;
+        }
+        .planet {
+            color: #0ff;
+        }
+        .ship {
+            color: #f0f;
+        }
+        .warning {
+            color: #ff0;
+        }
+        .danger {
+            color: #f00;
+        }
+        #game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            display: none;
+        }
+        #game-over h1 {
+            color: #f00;
+            font-size: 3em;
+        }
+        #game-over p {
+            color: #fff;
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>ASCII Space Trader</h1>
+        <div id="map"></div>
+        <div id="status">
+            <h2>飞船状态</h2>
+            <p>位置: <span id="location">地球</span></p>
+            <p>燃料: <span id="fuel">100</span>/100</p>
+            <p>资金: <span id="credits">1000</span> CR</p>
+            <p>货舱: <span id="cargo-used">0</span>/<span id="cargo-capacity">10</span></p>
+        </div>
+        <div id="market">
+            <h2>本地市场</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>商品</th>
+                        <th>价格 (CR)</th>
+                        <th>库存</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="market-items">
+                </tbody>
+            </table>
+        </div>
+        <div id="inventory">
+            <h2>货物库存</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>商品</th>
+                        <th>数量</th>
+                        <th>买入价 (CR)</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-items">
+                </tbody>
+            </table>
+        </div>
+        <div id="actions">
+            <h2>行动</h2>
+            <div id="travel-options"></div>
+        </div>
+    </div>
+
+    <div id="game-over">
+        <h1>游戏结束</h1>
+        <p>你的飞船燃料耗尽，永远漂浮在太空中...</p>
+        <button onclick="resetGame()">重新开始</button>
+    </div>
+
+    <script>
+        // 游戏状态
+        const gameState = {
+            currentPlanet: 'earth',
+            fuel: 100,
+            maxFuel: 100,
+            credits: 1000,
+            cargoCapacity: 10,
+            cargo: {},
+            planets: {
+                'earth': {
+                    name: '地球',
+                    x: 3, y: 3,
+                    market: {
+                        'food': { price: 10, quantity: 100 },
+                        'water': { price: 5, quantity: 200 },
+                        'ore': { price: 50, quantity: 30 },
+                        'fuel': { price: 8, quantity: 1000 }
+                    }
+                },
+                'mars': {
+                    name: '火星',
+                    x: 8, y: 3,
+                    market: {
+                        'food': { price: 30, quantity: 50 },
+                        'water': { price: 40, quantity: 30 },
+                        'ore': { price: 30, quantity: 100 },
+                        'fuel': { price: 12, quantity: 800 }
+                    }
+                },
+                'venus': {
+                    name: '金星',
+                    x: 3, y: 8,
+                    market: {
+                        'food': { price: 20, quantity: 80 },
+                        'water': { price: 60, quantity: 10 },
+                        'ore': { price: 40, quantity: 70 },
+                        'fuel': { price: 15, quantity: 500 }
+                    }
+                },
+                'jupiter': {
+                    name: '木星',
+                    x: 10, y: 10,
+                    market: {
+                        'food': { price: 50, quantity: 20 },
+                        'water': { price: 80, quantity: 5 },
+                        'ore': { price: 20, quantity: 150 },
+                        'fuel': { price: 5, quantity: 2000 }
+                    }
+                }
+            },
+            goods: {
+                'food': { name: '食物' },
+                'water': { name: '水' },
+                'ore': { name: '矿石' },
+                'fuel': { name: '燃料' }
+            }
+        };
+
+        // 计算两个星球之间的距离
+        function calculateDistance(planet1, planet2) {
+            const dx = planet1.x - planet2.x;
+            const dy = planet1.y - planet2.y;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        // 更新地图显示
+        function updateMap() {
+            const mapElement = document.getElementById('map');
+            let mapStr = '';
+            
+            for (let y = 0; y <= 12; y++) {
+                for (let x = 0; x <= 12; x++) {
+                    let foundPlanet = false;
+                    
+                    for (const planetId in gameState.planets) {
+                        const planet = gameState.planets[planetId];
+                        if (planet.x === x && planet.y === y) {
+                            if (planetId === gameState.currentPlanet) {
+                                mapStr += '<span class="ship">[X]</span>';
+                            } else {
+                                mapStr += '<span class="planet">[O]</span>';
+                            }
+                            foundPlanet = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!foundPlanet) {
+                        mapStr += (x === 0 || y === 0 || x === 12 || y === 12) ? '+' : 
+                                (x % 2 === 0 && y % 2 === 0) ? '.' : ' ';
+                    }
+                }
+                mapStr += '\n';
+            }
+            mapElement.innerHTML = mapStr;
+        }
+
+        // 更新状态显示
+        function updateStatus() {
+            const fuelElement = document.getElementById('fuel');
+            fuelElement.textContent = gameState.fuel;
+            fuelElement.className = gameState.fuel < 0 ? 'danger' : 
+                                  gameState.fuel < 30 ? 'warning' : '';
+
+            document.getElementById('location').textContent = gameState.planets[gameState.currentPlanet].name;
+            document.getElementById('credits').textContent = gameState.credits;
+            
+            let usedCargo = Object.values(gameState.cargo).reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cargo-used').textContent = usedCargo;
+            
+            if (gameState.fuel < -10) endGame();
+        }
+
+        // 购买商品核心逻辑
+        function buyGood(goodId, quantity) {
+            const market = gameState.planets[gameState.currentPlanet].market[goodId];
+            if (market.quantity < quantity) {
+                alert('市场库存不足!');
+                return;
+            }
+
+            const totalCost = market.price * quantity;
+            if (gameState.credits < totalCost) {
+                alert('资金不足!');
+                return;
+            }
+
+            const currentCargo = Object.values(gameState.cargo).reduce((a,b) => a + b.quantity, 0);
+            if (currentCargo + quantity > gameState.cargoCapacity) {
+                alert('货舱空间不足!');
+                return;
+            }
+
+            // 特殊处理燃料购买
+            if (goodId === 'fuel') {
+                const fuelSpace = gameState.maxFuel - gameState.fuel;
+                const actualQty = Math.min(quantity, fuelSpace);
+                
+                gameState.fuel += actualQty;
+                market.quantity -= actualQty;
+                gameState.credits -= market.price * actualQty;
+            } else {
+                gameState.credits -= totalCost;
+                market.quantity -= quantity;
+                
+                if (!gameState.cargo[goodId]) {
+                    gameState.cargo[goodId] = { quantity: 0, buyPrice: market.price };
+                }
+                gameState.cargo[goodId].quantity += quantity;
+            }
+
+            updateAll();
+        }
+
+        // 出售商品
+        function sellGood(goodId, quantity) {
+            if (!gameState.cargo[goodId] || gameState.cargo[goodId].quantity < quantity) {
+                alert('库存不足!');
+                return;
+            }
+            
+            const market = gameState.planets[gameState.currentPlanet].market[goodId];
+            const totalIncome = market.price * quantity;
+            
+            gameState.credits += totalIncome;
+            market.quantity += quantity;
+            gameState.cargo[goodId].quantity -= quantity;
+
+            if (gameState.cargo[goodId].quantity === 0) {
+                delete gameState.cargo[goodId];
+            }
+            
+            updateAll();
+        }
+
+        // 太空旅行
+        function travelTo(planetId) {
+            const currentPlanet = gameState.planets[gameState.currentPlanet];
+            const targetPlanet = gameState.planets[planetId];
+            
+            const distance = Math.floor(calculateDistance(currentPlanet, targetPlanet));
+            gameState.fuel -= distance;
+            gameState.currentPlanet = planetId;
+            
+            updateAll();
+        }
+
+        // 游戏结束与重置
+        function endGame() {
+            document.getElementById('game-over').style.display = 'flex';
+        }
+
+        function resetGame() {
+            gameState.currentPlanet = 'earth';
+            gameState.fuel = 100;
+            gameState.credits = 1000;
+            gameState.cargo = {};
+            
+            // 重置所有星球市场
+            Object.values(gameState.planets).forEach(planet => {
+                Object.values(planet.market).forEach(item => {
+                    if (item.quantity < 100) item.quantity = 1000; // 简单重置
+                });
+            });
+            
+            document.getElementById('game-over').style.display = 'none';
+            initGame();
+        }
+
+        // 统一更新界面
+        function updateAll() {
+            updateMap();
+            updateStatus();
+            updateMarket();
+            updateInventory();
+            updateTravelOptions();
+        }
+
+        // 初始化市场界面
+        function updateMarket() {
+            const marketItemsElement = document.getElementById('market-items');
+            marketItemsElement.innerHTML = '';
+            
+            const planetMarket = gameState.planets[gameState.currentPlanet].market;
+            
+            for (const goodId in planetMarket) {
+                const good = planetMarket[goodId];
+                const disabled = goodId === 'fuel' && gameState.fuel >= gameState.maxFuel ? 'disabled' : '';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${gameState.goods[goodId].name}</td>
+                    <td>${good.price}</td>
+                    <td>${good.quantity}</td>
+                    <td>
+                        <button onclick="buyGood('${goodId}', 1)" ${disabled}>买1</button>
+                        <button onclick="buyGood('${goodId}', 10)" ${disabled}>买10</button>
+                        <button onclick="buyGood('${goodId}', 100)" ${disabled}>买100</button>
+                        <button onclick="buyGood('${goodId}', 1000)" ${disabled}>买1000</button>
+                    </td>
+                `;
+                marketItemsElement.appendChild(row);
+            }
+        }
+
+        // 初始化库存界面
+        function updateInventory() {
+            const inventoryItemsElement = document.getElementById('inventory-items');
+            inventoryItemsElement.innerHTML = '';
+            
+            for (const goodId in gameState.cargo) {
+                const cargo = gameState.cargo[goodId];
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${gameState.goods[goodId].name}</td>
+                    <td>${cargo.quantity}</td>
+                    <td>${cargo.buyPrice}</td>
+                    <td>
+                        <button onclick="sellGood('${goodId}', 1)">卖1</button>
+                        <button onclick="sellGood('${goodId}', 10)">卖10</button>
+                        <button onclick="sellGood('${goodId}', 100)">卖100</button>
+                        <button onclick="sellGood('${goodId}', 1000)">卖1000</button>
+                    </td>
+                `;
+                marketItemsElement.appendChild(row);
+            }
+        }
+
+        // 初始化旅行选项
+        function updateTravelOptions() {
+            const travelOptionsElement = document.getElementById('travel-options');
+            travelOptionsElement.innerHTML = '';
+            
+            const currentPlanet = gameState.planets[gameState.currentPlanet];
+            
+            for (const planetId in gameState.planets) {
+                if (planetId !== gameState.currentPlanet) {
+                    const planet = gameState.planets[planetId];
+                    const distance = Math.floor(calculateDistance(currentPlanet, planet));
+                    
+                    const button = document.createElement('button');
+                    button.textContent = `前往${planet.name} (燃料: ${distance})`;
+                    button.onclick = () => travelTo(planetId);
+                    travelOptionsElement.appendChild(button);
+                }
+            }
+        }
+
+        // 启动游戏
+        function initGame() {
+            updateAll();
+        }
+        window.onload = initGame;
+    </script>
+</body>
+</html>
