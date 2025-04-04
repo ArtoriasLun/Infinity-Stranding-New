@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:engine="UnityEngine.UIElements"
+    xmlns:editor="UnityEditor.UIElements"
+    xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
+>
+    <engine:Style src="SpaceTrade.uss" />
+    
+    <engine:Box name="game-container" class="game-container">
+        <engine:Label text="ASCII Space Trader" class="title" />
+        
+        <engine:Box class="main-content">
+            <!-- Left Panel -->
+            <engine:Box class="left-panel">
+                <engine:ScrollView name="map" class="map" mode="VerticalAndHorizontal">
+                    <!-- Map content will be generated in C# -->
+                </engine:ScrollView>
+                
+                <engine:Box name="status" class="section">
+                    <engine:Label text="飞船状态" class="section-title" />
+                    <engine:Box class="status-row">
+                        <engine:Label text="位置: " />
+                        <engine:Label name="location" text="地球" />
+                    </engine:Box>
+                    <engine:Box class="status-row">
+                        <engine:Label text="燃料: " />
+                        <engine:Label name="fuel" text="100" />
+                        <engine:Label text="/100" />
+                    </engine:Box>
+                    <engine:Box class="status-row">
+                        <engine:Label text="资金: " />
+                        <engine:Label name="credits" text="1000" />
+                        <engine:Label text=" CR" />
+                    </engine:Box>
+                    <engine:Box class="status-row">
+                        <engine:Label text="货舱: " />
+                        <engine:Label name="cargo-used" text="0" />
+                        <engine:Label text="/" />
+                        <engine:Label name="cargo-capacity" text="10" />
+                    </engine:Box>
+                </engine:Box>
+            </engine:Box>
+
+            <!-- Right Panel -->
+            <engine:Box class="right-panel">
+                <engine:Box name="market" class="section">
+                    <engine:Label text="本地市场" class="section-title" />
+                    <engine:Box class="table">
+                        <engine:Box class="table-header">
+                            <engine:Box class="th"><engine:Label text="商品" /></engine:Box>
+                            <engine:Box class="th"><engine:Label text="价格 (CR)" /></engine:Box>
+                            <engine:Box class="th"><engine:Label text="库存" /></engine:Box>
+                            <engine:Box class="th"><engine:Label text="操作" /></engine:Box>
+                        </engine:Box>
+                        <engine:Box name="market-items" class="table-body" />
+                    </engine:Box>
+                </engine:Box>
+                
+                <engine:Box name="inventory" class="section">
+                    <engine:Label text="货物库存" class="section-title" />
+                    <engine:Box class="table">
+                        <engine:Box class="table-header">
+                            <engine:Box class="th"><engine:Label text="商品" /></engine:Box>
+                            <engine:Box class="th"><engine:Label text="数量" /></engine:Box>
+                            <engine:Box class="th"><engine:Label text="买入价 (CR)" /></engine:Box>
+                            <engine:Box class="th"><engine:Label text="操作" /></engine:Box>
+                        </engine:Box>
+                        <engine:Box name="inventory-items" class="table-body" />
+                    </engine:Box>
+                </engine:Box>
+                
+                <engine:Box name="actions" class="section">
+                    <engine:Label text="行动" class="section-title" />
+                    <engine:Box name="travel-options" class="travel-options" />
+                </engine:Box>
+            </engine:Box>
+        </engine:Box>
+    </engine:Box>
+
+    <engine:Box name="game-over" class="game-over">
+        <engine:Label text="游戏结束" class="game-over-title" />
+        <engine:Label text="你的飞船燃料耗尽，永远漂浮在太空中..." class="game-over-text" />
+        <engine:Button text="重新开始" name="reset-game-button" class="button" />
+    </engine:Box>
+</engine:UXML>
