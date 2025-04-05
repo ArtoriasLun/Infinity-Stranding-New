@@ -98,8 +98,6 @@ const Game = {
               display += '<span class="door">|</span>';
             } else if (tile === '✳') {
               display += '<span class="tree">✳</span>';
-            } else if (tile === '┌' || tile === '┐' || tile === '└' || tile === '┘') {
-              display += '<span class="wall-corner">' + tile + '</span>';
             } else if (CityModule.isCityChunk(this.worldMap.currentX, this.worldMap.currentY) && tile === '.') {
               display += '<span class="city-ground">.</span>';
             } else {
@@ -162,7 +160,6 @@ const Game = {
     isTilePassable(tile) {
       if (tile === '#') return false;
       if (tile === '✳') return false;
-      if (tile === '┌' || tile === '┐' || tile === '└' || tile === '┘') return false;
       if (/^[A-Za-z]+$/.test(tile) && tile !== 'O') return false;
       if (tile === '|' || tile === '.' || tile === '-' || tile === '■' || tile === '□') return true;
       return true;

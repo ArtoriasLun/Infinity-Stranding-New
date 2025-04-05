@@ -108,70 +108,27 @@ const CityModule = {
       const minY = startY + 6;
       const maxY = startY + 18;
       
-      // 创建一个二维城市围墙数组，用于处理直角连接
-      const wallGrid = [];
-      for (let y = 0; y < mapSize; y++) {
-        wallGrid[y] = [];
-        for (let x = 0; x < mapSize; x++) {
-          wallGrid[y][x] = 0; // 0表示无墙
-        }
-      }
+      // 直接放置围墙，不再使用wallGrid
       
-      // 标记围墙位置
       // 顶部和底部横墙
       for (let x = minX; x <= maxX; x++) {
-        wallGrid[minY][x] = 1; // 顶部墙
-        wallGrid[maxY][x] = 1; // 底部墙
+        terrain[minY][x] = '#'; // 顶部墙
+        terrain[maxY][x] = '#'; // 底部墙
       }
       
       // 左侧和右侧竖墙
       for (let y = minY + 1; y < maxY; y++) {
-        wallGrid[y][minX] = 1; // 左侧墙
-        wallGrid[y][maxX] = 1; // 右侧墙
+        terrain[y][minX] = '#'; // 左侧墙
+        terrain[y][maxX] = '#'; // 右侧墙
       }
-      
-      // 处理转角的直角连接
-      // 左上角
-      wallGrid[minY][minX] = 2;
-      // 右上角
-      wallGrid[minY][maxX] = 2;
-      // 左下角
-      wallGrid[maxY][minX] = 2;
-      // 右下角
-      wallGrid[maxY][maxX] = 2;
       
       // 设置门的位置
       let rightDoorY = startY + 12;
       let leftDoorY = startY + 14;
       
       // 放置门
-      wallGrid[rightDoorY][maxX] = 3; // 右侧门
-      wallGrid[leftDoorY][minX] = 3; // 左侧门
-      
-      // 将wallGrid应用到terrain
-      for (let y = 0; y < mapSize; y++) {
-        for (let x = 0; x < mapSize; x++) {
-          if (wallGrid[y][x] === 1) {
-            // 普通墙
-            terrain[y][x] = '#';
-          } else if (wallGrid[y][x] === 2) {
-            // 拐角墙 - 使用特殊字符表示
-            // 根据位置确定拐角类型
-            if (y === minY && x === minX) {
-              terrain[y][x] = '┌'; // 左上角
-            } else if (y === minY && x === maxX) {
-              terrain[y][x] = '┐'; // 右上角
-            } else if (y === maxY && x === minX) {
-              terrain[y][x] = '└'; // 左下角
-            } else if (y === maxY && x === maxX) {
-              terrain[y][x] = '┘'; // 右下角
-            }
-          } else if (wallGrid[y][x] === 3) {
-            // 门
-            terrain[y][x] = '|';
-          }
-        }
-      }
+      terrain[rightDoorY][maxX] = '|'; // 右侧门
+      terrain[leftDoorY][minX] = '|'; // 左侧门
       
       // 在城市内部放置建筑
       const barPoint = BuildingsModule.placeBuilding(terrain, "bar", minX + 4, minY + 5);
