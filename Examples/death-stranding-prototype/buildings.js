@@ -3,41 +3,40 @@ const BuildingModule = {
     roomTemplates: {
         small: [
             ['#', '#', '#', '#'],
-            ['#', '.', '.', '#'],
-            ['#', '.', '.', '#'],
+            ['|', '.', '.', '#'],
+            ['#', '.', '.', '|'],
             ['#', '#', '#', '#']
         ],
         medium: [
             ['#', '#', '#', '#', '#'],
             ['#', '.', '.', '.', '#'],
-            ['#', '.', '.', '.', '#'],
+            ['|', '.', '.', '.', '|'],
             ['#', '.', '.', '.', '#'],
             ['#', '#', '#', '#', '#']
         ],
         large: [
             ['#', '#', '#', '#', '#', '#'],
             ['#', '.', '.', '.', '.', '#'],
-            ['#', '.', '.', '.', '.', '#'],
-            ['#', '.', '.', '.', '.', '#'],
+            ['#', '.', '.', '.', '.', '|'],
+            ['|', '.', '.', '.', '.', '#'],
             ['#', '.', '.', '.', '.', '#'],
             ['#', '#', '#', '#', '#', '#']
         ],
         largeL: [
             ['#', '#', '#', '#', '#', '#'],
             ['#', '.', '.', '.', '.', '#'],
-            ['#', '.', '.', '.', '.', '#'],
+            ['|', '.', '.', '.', '.', '|'],
             ['#', '.', '.', '#', '#', '#'],
-            ['#', '.', '.', '#', '.', '#'],
-            ['#', '#', '#', '#', '.', '#']
+            ['#', '.', '.', '#', '.', '.'],
+            ['#', '#', '#', '#', '.', '.']
         ]
     },
 
     // Special points that can be placed in rooms
     specialPoints: {
-        task: 'T', // Task acceptance point
-        delivery: 'D', // Delivery point
-        rest: 'R', // Rest point
-        storage: 'S' // Storage point
+        task: '■', // 用■替换任务接收点 (原来是T)
+        delivery: '□', // 用□替换交货点 (原来是D)
+        rest: '+', // Rest point (改为半角字符)
     },
 
     // Building types and their required special points
@@ -45,25 +44,25 @@ const BuildingModule = {
         bar: {
             name: 'Bar',
             requiredPoints: ['task'],
-            optionalPoints: ['rest', 'storage'],
+            optionalPoints: ['rest'],
             roomSizes: ['small', 'medium']
         },
         yard: {
             name: 'Yard',
             requiredPoints: ['delivery'],
-            optionalPoints: ['storage'],
+            optionalPoints: [],
             roomSizes: ['medium', 'large', 'largeL']
         },
-        warehouse: {
-            name: 'Warehouse',
-            requiredPoints: ['storage'],
-            optionalPoints: ['delivery'],
-            roomSizes: ['large', 'largeL']
-        },
-        restStop: {
-            name: 'Rest Stop',
+        hotel: {
+            name: 'Hotel',
             requiredPoints: ['rest'],
-            optionalPoints: ['storage'],
+            optionalPoints: [],
+            roomSizes: ['medium', 'large']
+        },
+        exchange: {
+            name: 'Exchange',
+            requiredPoints: [],
+            optionalPoints: [],
             roomSizes: ['small', 'medium']
         }
     },

@@ -18,7 +18,7 @@ const CityModule = {
       ['.', '.', '.', '.', '.', '#', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '|', '.', '.', '.', '.', '.', '.'],
       ['.', '.', '.', '.', '.', '#', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '#', '.', '.', '.', '.', '.', '.'],
       ['.', '.', '.', '.', '.', '#', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '#', '.', '.', '.', '.', '.', '.'],
-      ['.', '.', '.', '.', '.', '#', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '#', '.', '.', '.', '.', '.', '.'],
+      ['.', '.', '.', '.', '.', '|', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '#', '.', '.', '.', '.', '.', '.'],
       ['.', '.', '.', '.', '.', '#', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '#', '.', '.', '.', '.', '.', '.'],
       ['.', '.', '.', '.', '.', '#', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '#', '.', '.', '.', '.', '.', '.'],
       ['.', '.', '.', '.', '.', '#', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '#', '.', '.', '.', '.', '.', '.'],
@@ -57,7 +57,9 @@ const CityModule = {
                     worldY: y,
                     buildings: this.generateCityBuildings()
                 });
-                citySymbols[posKey] = String.fromCharCode(65 + cities.length - 1);
+                // 使用希腊字母池中的符号，确保不越界
+                const symbolIndex = Math.min(cities.length - 1, this.citySymbolPool.length - 1);
+                citySymbols[posKey] = this.citySymbolPool[symbolIndex];
             }
         }
 
@@ -66,16 +68,27 @@ const CityModule = {
   
     generateCityBuildings() {
         const buildings = [];
-        const buildingTypes = ['bar', 'yard', 'warehouse', 'restStop'];
+        const buildingTypes = ['bar', 'yard', 'hotel', 'exchange'];
         
-        // Generate 2-4 buildings per city
-        const buildingCount = 2 + Math.floor(Math.random() * 3);
+        // 确保每个城市都有yard
+        const yardBuilding = BuildingModule.generateBuilding('yard');
+        if (yardBuilding) {
+            buildings.push(yardBuilding);
+        }
         
-        for (let i = 0; i < buildingCount; i++) {
-            const type = buildingTypes[Math.floor(Math.random() * buildingTypes.length)];
-            const building = BuildingModule.generateBuilding(type);
-            if (building) {
-                buildings.push(building);
+        // 从剩余建筑类型中随机选择，确保每种类型最多只有一个
+        const remainingTypes = buildingTypes.filter(type => type !== 'yard');
+        const shuffledTypes = [...remainingTypes].sort(() => Math.random() - 0.5);
+        
+        // 选择1-3个其他建筑
+        const additionalCount = 1 + Math.floor(Math.random() * Math.min(3, remainingTypes.length));
+        
+        for (let i = 0; i < additionalCount; i++) {
+            if (i < shuffledTypes.length) {
+                const building = BuildingModule.generateBuilding(shuffledTypes[i]);
+                if (building) {
+                    buildings.push(building);
+                }
             }
         }
 
@@ -98,12 +111,43 @@ const CityModule = {
         const citySize = 20;
         const startX = Math.floor((mapSize - citySize) / 2);
         const startY = Math.floor((mapSize - citySize) / 2);
+        
+        // 添加城市外墙
+        for (let x = startX; x < startX + citySize; x++) {
+            terrain[startY][x] = '#';  // 上墙
+            terrain[startY + citySize - 1][x] = '#';  // 下墙
+        }
+        
+        for (let y = startY; y < startY + citySize; y++) {
+            terrain[y][startX] = '#';  // 左墙
+            terrain[y][startX + citySize - 1] = '#';  // 右墙
+        }
+        
+        // 在墙上创建四个入口 (四个方向的中间位置)
+        const midX = startX + Math.floor(citySize / 2);
+        const midY = startY + Math.floor(citySize / 2);
+        
+        // 上方门
+        terrain[startY][midX] = '|';
+        
+        // 右方门
+        terrain[midY][startX + citySize - 1] = '|';
+        
+        // 下方门
+        terrain[startY + citySize - 1][midX] = '|';
+        
+        // 左方门
+        terrain[midY][startX] = '|';
 
         // Place buildings in the city
         let buildingX = startX + 2;
         let buildingY = startY + 2;
 
         for (const building of currentCity.buildings) {
+            // 保存建筑物位置坐标
+            building.x = buildingX;
+            building.y = buildingY;
+            
             // Place building name
             const nameX = buildingX + Math.floor((building.width - building.name.length) / 2);
             for (let i = 0; i < building.name.length; i++) {
@@ -172,8 +216,6 @@ const CityModule = {
                 return this.handleDeliveryPoint(tasks, carriedCargo, bitcoin);
             case 'rest':
                 return this.handleRestPoint(strain);
-            case 'storage':
-                return this.handleStoragePoint(carriedCargo);
             default:
                 return { acted: false, message: "Unknown action point." };
         }
@@ -192,10 +234,10 @@ const CityModule = {
 
     // Handle task point actions
     handleTaskPoint(tasks, carriedCargo, currentCity) {
-        if (carriedCargo >= 3) {
+        if (carriedCargo >= GameConfig.player.maxCargo) {
             return { 
                 acted: true, 
-                message: "Cargo capacity full (3/3)!",
+                message: `Cargo capacity full (${carriedCargo}/${GameConfig.player.maxCargo})!`,
                 tasks, 
                 carriedCargo, 
                 bitcoin: 0,
@@ -252,7 +294,7 @@ const CityModule = {
             let task = tasks[i];
             if (task.toCity.worldX === this.worldMap.currentX && 
                 task.toCity.worldY === this.worldMap.currentY) {
-                bitcoin += task.cargo * 0.33;
+                bitcoin += task.cargo * GameConfig.tasks.bitcoinReward;
                 delivered = true;
                 tasks.splice(i, 1);
                 carriedCargo = Math.max(0, carriedCargo - 1);
@@ -281,16 +323,4 @@ const CityModule = {
             strain: 0
         };
     },
-
-    // Handle storage point actions
-    handleStoragePoint(carriedCargo) {
-        return { 
-            acted: true, 
-            message: "Storage point activated.",
-            tasks: [], 
-            carriedCargo, 
-            bitcoin: 0,
-            strain: 0
-        };
-    }
 };
