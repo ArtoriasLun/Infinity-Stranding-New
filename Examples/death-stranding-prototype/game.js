@@ -1,24 +1,31 @@
 const Game = {
     mapSize: 30,
-    player: { x: 15, y: 15, moveCount: 0 },
+    player: { x: 15, y: 15 },
+    tasks: [],
     carriedCargo: 0,
     bitcoin: 0,
     strain: 0,
-    terrain: [],
-    tasks: [],
-    worldMap: { width: 7, height: 7, currentX: 3, currentY: 3 },
-    taskPage: 0,
-    tasksPerPage: 3,
-  
-    init() {
-      const { cities, citySymbols } = CityModule.initCities(3, this.worldMap.width, this.worldMap.height);
-      this.cities = cities;
-      this.citySymbols = citySymbols;
-      this.generateTerrain();
-      this.render();
-      this.setupKeyboardControls();
+    worldMap: {
+        currentX: 0,
+        currentY: 0,
+        width: 10,
+        height: 10
     },
-  
+    cities: [],
+    citySymbols: {},
+    keyState: {},
+
+    init() {
+        // Initialize cities
+        const { cities, citySymbols } = CityModule.initCities(5, this.worldMap.width, this.worldMap.height, this.worldMap);
+        this.cities = cities;
+        this.citySymbols = citySymbols;
+        
+        this.generateTerrain();
+        this.setupKeyboardControls();
+        this.render();
+    },
+
     generateTerrain() {
       this.terrain = [];
       const seed = Math.random() * 1000;
@@ -262,14 +269,48 @@ const Game = {
     setupKeyboardControls() {
       document.addEventListener('keydown', (e) => {
         e.preventDefault();
-        switch(e.key) {
-          case 'ArrowUp': case 'w': case 'W': this.movePlayer(0, -1); break;
-          case 'ArrowDown': case 's': case 'S': this.movePlayer(0, 1); break;
-          case 'ArrowLeft': case 'a': case 'A': this.movePlayer(-1, 0); break;
-          case 'ArrowRight': case 'd': case 'D': this.movePlayer(1, 0); break;
-          case ' ': case 'e': case 'E': this.activateAction(); break;
-        }
+        this.keyState[e.key] = true;
+        this.handleMovement();
       });
+
+      document.addEventListener('keyup', (e) => {
+        e.preventDefault();
+        this.keyState[e.key] = false;
+      });
+
+      setInterval(() => {
+        if (Object.values(this.keyState).some(state => state)) {
+          this.handleMovement();
+        }
+      }, 100000);
+    },
+  
+    handleMovement() {
+      let dx = 0;
+      let dy = 0;
+
+      if ((this.keyState['ArrowUp'] || this.keyState['w'] || this.keyState['W']) && 
+          (this.keyState['ArrowRight'] || this.keyState['d'] || this.keyState['D'])) {
+        dx = 1; dy = -1;
+      } else if ((this.keyState['ArrowUp'] || this.keyState['w'] || this.keyState['W']) && 
+                 (this.keyState['ArrowLeft'] || this.keyState['a'] || this.keyState['A'])) {
+        dx = -1; dy = -1;
+      } else if ((this.keyState['ArrowDown'] || this.keyState['s'] || this.keyState['S']) && 
+                 (this.keyState['ArrowRight'] || this.keyState['d'] || this.keyState['D'])) {
+        dx = 1; dy = 1;
+      } else if ((this.keyState['ArrowDown'] || this.keyState['s'] || this.keyState['S']) && 
+                 (this.keyState['ArrowLeft'] || this.keyState['a'] || this.keyState['A'])) {
+        dx = -1; dy = 1;
+      } else {
+        if (this.keyState['ArrowUp'] || this.keyState['w'] || this.keyState['W']) dy = -1;
+        if (this.keyState['ArrowDown'] || this.keyState['s'] || this.keyState['S']) dy = 1;
+        if (this.keyState['ArrowLeft'] || this.keyState['a'] || this.keyState['A']) dx = -1;
+        if (this.keyState['ArrowRight'] || this.keyState['d'] || this.keyState['D']) dx = 1;
+      }
+
+      if (dx !== 0 || dy !== 0) {
+        this.movePlayer(dx, dy);
+      }
     },
   
     render() {
@@ -279,5 +320,6 @@ const Game = {
       document.getElementById('cargo-count').textContent = this.carriedCargo;
       document.getElementById('bitcoin').textContent = this.bitcoin.toFixed(2);
       document.getElementById('progress-fill').style.width = `${this.strain}%`;
+      document.getElementById('progress-label').textContent = `Strain: ${this.strain}%`;
     }
   };

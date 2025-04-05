@@ -102,3 +102,22 @@ body {
     text-shadow: 0 0 2px #ff8c00;
     background-color: #222;
   }
+  .speed-control {
+    margin-top: 10px;
+    padding: 5px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    text-align: center;
+  }
+  .speed-control button {
+    margin: 0 5px;
+    padding: 2px 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  .speed-control button:hover {
+    background-color: #45a049;
+  }

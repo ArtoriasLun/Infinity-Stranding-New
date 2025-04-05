@@ -16,18 +16,33 @@
   <div id="info-area">
     <div id="hud">
       <div>Cargo: <span id="cargo-count">0</span>/3</div>
-      <div id="progress-bar"><div id="progress-fill"></div></div>
+      <div>
+        <span id="progress-label">Strain: 0%</span>
+        <div id="progress-bar"><div id="progress-fill"></div></div>
+      </div>
       <div>₿<span id="bitcoin">0</span></div>
     </div>
     <div id="task-panel"></div>
     <div id="controls">
-      <button onclick="Game.movePlayer(0, -1)">↑ Up</button>
-      <button onclick="Game.movePlayer(-1, 0)">← Left</button>
-      <button onclick="Game.movePlayer(0, 1)">↓ Down</button>
-      <button onclick="Game.movePlayer(1, 0)">→ Right</button>
-      <button onclick="Game.activateAction()">Action (E)</button>
-      <button onclick="Game.prevTaskPage()">Previous Tasks</button>
-      <button onclick="Game.nextTaskPage()">Next Tasks</button>
+      <div class="control-row">
+        <button onclick="Game.movePlayer(-1, -1)">↖</button>
+        <button onclick="Game.movePlayer(0, -1)">↑</button>
+        <button onclick="Game.movePlayer(1, -1)">↗</button>
+      </div>
+      <div class="control-row">
+        <button onclick="Game.movePlayer(-1, 0)">←</button>
+        <button onclick="Game.activateAction()">Action (E)</button>
+        <button onclick="Game.movePlayer(1, 0)">→</button>
+      </div>
+      <div class="control-row">
+        <button onclick="Game.movePlayer(-1, 1)">↙</button>
+        <button onclick="Game.movePlayer(0, 1)">↓</button>
+        <button onclick="Game.movePlayer(1, 1)">↘</button>
+      </div>
+      <div class="control-row task-buttons">
+        <button onclick="Game.prevTaskPage()">Previous Tasks</button>
+        <button onclick="Game.nextTaskPage()">Next Tasks</button>
+      </div>
     </div>
   </div>
 
