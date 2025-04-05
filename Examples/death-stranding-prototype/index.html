@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Death Stranding Minimal (Cities & Task Panel)</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>Death Stranding Minimal (Cities & Task Panel)</h1>
+  <div id="top-area">
+    <div id="game-container">
+      <div id="game-map"></div>
+    </div>
+    <div id="world-map"></div>
+  </div>
+  <div id="info-area">
+    <div id="hud">
+      <div>Cargo: <span id="cargo-count">0</span>/3</div>
+      <div id="progress-bar"><div id="progress-fill"></div></div>
+      <div>₿<span id="bitcoin">0</span></div>
+    </div>
+    <div id="task-panel"></div>
+    <div id="controls">
+      <button onclick="Game.movePlayer(0, -1)">↑ Up</button>
+      <button onclick="Game.movePlayer(-1, 0)">← Left</button>
+      <button onclick="Game.movePlayer(0, 1)">↓ Down</button>
+      <button onclick="Game.movePlayer(1, 0)">→ Right</button>
+      <button onclick="Game.activateAction()">Action (E)</button>
+      <button onclick="Game.prevTaskPage()">Previous Tasks</button>
+      <button onclick="Game.nextTaskPage()">Next Tasks</button>
+    </div>
+  </div>
+
+  <script src="utils.js"></script>
+  <script src="buildings.js"></script>
+  <script src="city.js"></script>
+  <script src="game.js"></script>
+  <script>
+    window.onload = function() {
+      Game.init();
+    };
+  </script>
+</body>
+</html>

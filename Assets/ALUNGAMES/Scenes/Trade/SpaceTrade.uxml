@@ -1,86 +1,107 @@
-<?xml version="1.0" encoding="utf-8"?>
-<engine:UXML
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:engine="UnityEngine.UIElements"
-    xmlns:editor="UnityEditor.UIElements"
-    xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
->
-    <engine:Style src="SpaceTrade.uss" />
-    
-    <engine:Box name="game-container" class="game-container">
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/ALUNGAMES/Scenes/Trade/SpaceTrade.uss?fileID=7433441132597879392&amp;guid=2a7a24c947407674fa0ed4f44fc962e3&amp;type=3#SpaceTrade" />
+    <engine:Box name="game-container" class="game-container" style="border-width: 0;">
         <engine:Label text="ASCII Space Trader" class="title" />
-        
-        <engine:Box class="main-content">
-            <!-- Left Panel -->
-            <engine:Box class="left-panel">
-                <engine:ScrollView name="map" class="map" mode="VerticalAndHorizontal">
-                    <!-- Map content will be generated in C# -->
-                </engine:ScrollView>
-                
-                <engine:Box name="status" class="section">
-                    <engine:Label text="飞船状态" class="section-title" />
-                    <engine:Box class="status-row">
-                        <engine:Label text="位置: " />
-                        <engine:Label name="location" text="地球" />
+        <engine:Box class="main-content" style="border-width: 0; border-color: transparent;">
+            <engine:Box class="left-panel" style="border-width: 0; border-color: transparent;">
+                <engine:ScrollView name="map" mode="VerticalAndHorizontal" class="map" style="border-width: 0; border-color: transparent; border-top-color: rgb(0, 255, 0); border-left-color: rgb(0, 255, 0); border-right-color: rgb(0, 255, 0); border-bottom-color: rgb(0, 255, 0); border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px;" />
+                <engine:Box name="status" class="section" style="border-width: 0; border-color: transparent; border-top-color: rgb(0, 255, 0); border-left-color: rgb(0, 255, 0); border-right-color: rgb(0, 255, 0); border-bottom-color: rgb(0, 255, 0); border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px;">
+                    <engine:Label text="Ship Status" class="section-title" />
+                    <engine:Box class="status-row" style="border-width: 0; border-color: transparent;">
+                        <engine:Label text="Location: " />
+                        <engine:Label name="location" text="Earth" />
                     </engine:Box>
-                    <engine:Box class="status-row">
-                        <engine:Label text="燃料: " />
+                    <engine:Box class="status-row" style="border-width: 0; border-color: transparent;">
+                        <engine:Label text="Fuel: " />
                         <engine:Label name="fuel" text="100" />
                         <engine:Label text="/100" />
                     </engine:Box>
-                    <engine:Box class="status-row">
-                        <engine:Label text="资金: " />
+                    <engine:Box class="status-row" style="border-width: 0; border-color: transparent;">
+                        <engine:Label text="Funds: " />
                         <engine:Label name="credits" text="1000" />
-                        <engine:Label text=" CR" />
+                        <engine:Label text=" ₿" />
                     </engine:Box>
-                    <engine:Box class="status-row">
-                        <engine:Label text="货舱: " />
+                    <engine:Box class="status-row" style="border-width: 0; border-color: transparent;">
+                        <engine:Label text="Cargo: " />
                         <engine:Label name="cargo-used" text="0" />
                         <engine:Label text="/" />
                         <engine:Label name="cargo-capacity" text="10" />
                     </engine:Box>
                 </engine:Box>
             </engine:Box>
-
-            <!-- Right Panel -->
-            <engine:Box class="right-panel">
-                <engine:Box name="market" class="section">
-                    <engine:Label text="本地市场" class="section-title" />
-                    <engine:Box class="table">
-                        <engine:Box class="table-header">
-                            <engine:Box class="th"><engine:Label text="商品" /></engine:Box>
-                            <engine:Box class="th"><engine:Label text="价格 (CR)" /></engine:Box>
-                            <engine:Box class="th"><engine:Label text="库存" /></engine:Box>
-                            <engine:Box class="th"><engine:Label text="操作" /></engine:Box>
+            <engine:Box class="right-panel" style="border-width: 0; border-color: transparent;">
+                <engine:Box name="market" class="section" style="border-width: 0; border-color: transparent; border-top-color: rgb(0, 255, 0); border-left-color: rgb(0, 255, 0); border-right-color: rgb(0, 255, 0); border-bottom-color: rgb(0, 255, 0); border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px;">
+                    <engine:Label text="Market" class="section-title" />
+                    <engine:Box class="panel-container" style="border-width: 0; border-color: transparent;">
+                        <engine:Box class="item-list-container" style="border-width: 0; border-color: transparent;">
+                            <engine:Box class="table" style="border-width: 0; border-color: transparent;">
+                                <engine:Box class="table-header" style="border-width: 0; border-color: transparent;">
+                                    <engine:Box class="th col-select" style="width: 56px; border-width: 0; border-color: transparent;">
+                                        <engine:Label style="width: 32px; border-width: 0; border-color: transparent;" />
+                                    </engine:Box>
+                                    <engine:Box class="th col-item" style="border-width: 0; border-color: transparent;">
+                                        <engine:Label text="Item" />
+                                    </engine:Box>
+                                    <engine:Box class="th col-price" style="border-width: 0; border-color: transparent;">
+                                        <engine:Label text="Price (₿)" />
+                                    </engine:Box>
+                                    <engine:Box class="th col-quantity" style="border-width: 0; border-color: transparent;">
+                                        <engine:Label text="Stock" />
+                                    </engine:Box>
+                                </engine:Box>
+                                <engine:Box name="market-items" focusable="true" tabindex="0" class="table-body" style="border-width: 0; border-color: transparent;" />
+                            </engine:Box>
                         </engine:Box>
-                        <engine:Box name="market-items" class="table-body" />
+                        <engine:Box class="action-buttons" style="border-width: 0; border-color: transparent;">
+                            <engine:Label text="Actions:" class="action-title" />
+                            <engine:Button text="Buy 1" name="market-buy-1" class="button" style="border-width: 0; border-color: transparent;" />
+                            <engine:Button text="Buy 10" name="market-buy-10" class="button" style="border-width: 0; border-color: transparent;" />
+                            <engine:Button text="Buy 100" name="market-buy-100" class="button" style="border-width: 0; border-color: transparent;" />
+                            <engine:Button text="Buy Max" name="market-buy-max" class="button" style="border-width: 0; border-color: transparent;" />
+                        </engine:Box>
                     </engine:Box>
                 </engine:Box>
-                
-                <engine:Box name="inventory" class="section">
-                    <engine:Label text="货物库存" class="section-title" />
-                    <engine:Box class="table">
-                        <engine:Box class="table-header">
-                            <engine:Box class="th"><engine:Label text="商品" /></engine:Box>
-                            <engine:Box class="th"><engine:Label text="数量" /></engine:Box>
-                            <engine:Box class="th"><engine:Label text="买入价 (CR)" /></engine:Box>
-                            <engine:Box class="th"><engine:Label text="操作" /></engine:Box>
+                <engine:Box name="inventory" class="section" style="border-width: 0; border-color: transparent; border-top-color: rgb(0, 255, 0); border-left-color: rgb(0, 255, 0); border-right-color: rgb(0, 255, 0); border-bottom-color: rgb(0, 255, 0); border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px;">
+                    <engine:Label text="Cargo Hold" class="section-title" />
+                    <engine:Box class="panel-container" style="border-width: 0; border-color: transparent;">
+                        <engine:Box class="item-list-container" style="border-width: 0; border-color: transparent;">
+                            <engine:Box class="table" style="border-width: 0; border-color: transparent;">
+                                <engine:Box class="table-header" style="border-width: 0; border-color: transparent;">
+                                    <engine:Box class="th col-select" style="width: 56px; border-width: 0; border-color: transparent;">
+                                        <engine:Label style="border-width: 0; border-color: transparent;" />
+                                    </engine:Box>
+                                    <engine:Box class="th col-item" style="border-width: 0; border-color: transparent;">
+                                        <engine:Label text="Item" />
+                                    </engine:Box>
+                                    <engine:Box class="th col-price" style="border-width: 0; border-color: transparent;">
+                                        <engine:Label text="Quantity" />
+                                    </engine:Box>
+                                    <engine:Box class="th col-quantity" style="border-width: 0; border-color: transparent;">
+                                        <engine:Label text="Buy Price (₿)" />
+                                    </engine:Box>
+                                </engine:Box>
+                                <engine:Box name="inventory-items" focusable="true" tabindex="0" class="table-body" style="border-width: 0; border-color: transparent;" />
+                            </engine:Box>
                         </engine:Box>
-                        <engine:Box name="inventory-items" class="table-body" />
+                        <engine:Box class="action-buttons" style="border-width: 0; border-color: transparent;">
+                            <engine:Label text="Actions:" class="action-title" />
+                            <engine:Button text="Sell 1" name="inventory-sell-1" class="button" style="border-width: 0; border-color: transparent;" />
+                            <engine:Button text="Sell 10" name="inventory-sell-10" class="button" style="border-width: 0; border-color: transparent;" />
+                            <engine:Button text="Sell 100" name="inventory-sell-100" class="button" style="border-width: 0; border-color: transparent;" />
+                            <engine:Button text="Sell All" name="inventory-sell-all" class="button" style="border-width: 0; border-color: transparent;" />
+                        </engine:Box>
                     </engine:Box>
                 </engine:Box>
-                
-                <engine:Box name="actions" class="section">
-                    <engine:Label text="行动" class="section-title" />
-                    <engine:Box name="travel-options" class="travel-options" />
+                <engine:Box name="actions" class="section" style="border-width: 0; border-color: transparent; border-top-color: rgb(0, 255, 0); border-left-color: rgb(0, 255, 0); border-right-color: rgb(0, 255, 0); border-bottom-color: rgb(0, 255, 0); border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px;">
+                    <engine:Label text="Travel" class="section-title" />
+                    <engine:Box name="travel-options" class="travel-options" style="border-width: 0; border-color: transparent;" />
                 </engine:Box>
             </engine:Box>
         </engine:Box>
     </engine:Box>
-
-    <engine:Box name="game-over" class="game-over">
-        <engine:Label text="游戏结束" class="game-over-title" />
-        <engine:Label text="你的飞船燃料耗尽，永远漂浮在太空中..." class="game-over-text" />
-        <engine:Button text="重新开始" name="reset-game-button" class="button" />
+    <engine:Box name="game-over" class="game-over" style="border-width: 0; border-color: transparent;">
+        <engine:Label text="GAME OVER" class="game-over-title" style="border-width: 0; border-color: transparent;" />
+        <engine:Label text="Your ship is out of fuel and forever drifting in space..." class="game-over-text" style="border-width: 0; border-color: transparent;" />
+        <engine:Button text="Restart" name="reset-game-button" class="button" style="border-width: 0; border-color: transparent;" />
     </engine:Box>
 </engine:UXML>

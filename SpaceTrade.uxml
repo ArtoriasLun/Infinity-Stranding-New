@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:engine="UnityEngine.UIElements"
+    xmlns:editor="UnityEditor.UIElements"
+    xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
+>
+    <engine:Style src="SpaceTrade.uss" />
+    
+    <engine:Box name="game-container" class="game-container">
+        <engine:Label text="ASCII Space Trader" class="title" />
+        
+        <engine:Box class="main-content">
+            <!-- Left Panel -->
+            <engine:Box class="left-panel">
+                <!-- Map area now empty -->
+                <engine:Box name="empty-map" class="empty-map">
+                    <!-- Empty space, will be black -->
+                </engine:Box>
+                
+                <!-- Status panel with map on right -->
+                <engine:Box class="status-container">
+                    <engine:Box name="status" class="section status-section">
+                        <engine:Label text="Ship Status" class="section-title" />
+                        <engine:Box class="status-row">
+                            <engine:Label text="Location: " />
+                            <engine:Label name="location" text="Earth" />
+                        </engine:Box>
+                        <engine:Box class="status-row">
+                            <engine:Label text="Fuel: " />
+                            <engine:Label name="fuel" text="100" />
+                            <engine:Label text="/100" />
+                        </engine:Box>
+                        <engine:Box class="status-row">
+                            <engine:Label text="Funds: " />
+                            <engine:Label name="credits" text="1000" />
+                            <engine:Label text=" ₿" />
+                        </engine:Box>
+                        <engine:Box class="status-row">
+                            <engine:Label text="Cargo: " />
+                            <engine:Label name="cargo-used" text="0" />
+                            <engine:Label text="/" />
+                            <engine:Label name="cargo-capacity" text="10" />
+                        </engine:Box>
+                    </engine:Box>
+                    
+                    <engine:ScrollView name="map" class="map" mode="VerticalAndHorizontal">
+                        <!-- Map content will be generated in C# -->
+                    </engine:ScrollView>
+                </engine:Box>
+            </engine:Box>
+
+            <!-- Right Panel -->
+            <engine:Box class="right-panel">
+                <engine:Box name="market" class="section">
+                    <engine:Label text="Market" class="section-title" />
+                    <engine:Box class="panel-container">
+                        <engine:Box class="item-list-container">
+                            <engine:Box class="table">
+                                <engine:Box class="table-header">
+                                    <engine:Box class="th col-select"><engine:Label text="" /></engine:Box>
+                                    <engine:Box class="th col-item"><engine:Label text="Item" /></engine:Box>
+                                    <engine:Box class="th col-price"><engine:Label text="Price (₿)" /></engine:Box>
+                                    <engine:Box class="th col-quantity"><engine:Label text="Stock" /></engine:Box>
+                                </engine:Box>
+                                <engine:Box name="market-items" class="table-body" focusable="true" tabindex="0" />
+                            </engine:Box>
+                        </engine:Box>
+                        <engine:Box class="action-buttons">
+                            <engine:Label text="Actions:" class="action-title" />
+                            <engine:Button text="Buy 1" name="market-buy-1" class="button" />
+                            <engine:Button text="Buy 10" name="market-buy-10" class="button" />
+                            <engine:Button text="Buy 100" name="market-buy-100" class="button" />
+                            <engine:Button text="Buy 1000" name="market-buy-1000" class="button" />
+                        </engine:Box>
+                    </engine:Box>
+                </engine:Box>
+                
+                <engine:Box name="inventory" class="section">
+                    <engine:Label text="Cargo Hold" class="section-title" />
+                    <engine:Box class="panel-container">
+                        <engine:Box class="item-list-container">
+                            <engine:Box class="table">
+                                <engine:Box class="table-header">
+                                    <engine:Box class="th col-select"><engine:Label text="" /></engine:Box>
+                                    <engine:Box class="th col-item"><engine:Label text="Item" /></engine:Box>
+                                    <engine:Box class="th col-price"><engine:Label text="Quantity" /></engine:Box>
+                                    <engine:Box class="th col-quantity"><engine:Label text="Buy Price (₿)" /></engine:Box>
+                                </engine:Box>
+                                <engine:Box name="inventory-items" class="table-body" focusable="true" tabindex="0" />
+                            </engine:Box>
+                        </engine:Box>
+                        <engine:Box class="action-buttons">
+                            <engine:Label text="Actions:" class="action-title" />
+                            <engine:Button text="Sell 1" name="inventory-sell-1" class="button" />
+                            <engine:Button text="Sell 10" name="inventory-sell-10" class="button" />
+                            <engine:Button text="Sell 100" name="inventory-sell-100" class="button" />
+                            <engine:Button text="Sell 1000" name="inventory-sell-1000" class="button" />
+                        </engine:Box>
+                    </engine:Box>
+                </engine:Box>
+                
+                <engine:Box name="actions" class="section">
+                    <engine:Label text="Travel" class="section-title" />
+                    <engine:Box name="travel-options" class="travel-options" />
+                </engine:Box>
+            </engine:Box>
+        </engine:Box>
+    </engine:Box>
+
+    <engine:Box name="game-over" class="game-over">
+        <engine:Label text="GAME OVER" class="game-over-title" />
+        <engine:Label text="Your ship is out of fuel and forever drifting in space..." class="game-over-text" />
+        <engine:Button text="Restart" name="reset-game-button" class="button" />
+    </engine:Box>
+</engine:UXML> 

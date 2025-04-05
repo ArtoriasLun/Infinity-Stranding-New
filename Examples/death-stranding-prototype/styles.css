@@ -1,0 +1,105 @@
+body {
+    background: #000;
+    color: #0f0;
+    font-family: monospace;
+    margin: 0;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  #top-area {
+    display: flex;
+    gap: 20px;
+  }
+  #game-container {
+    border: 2px solid #0f0;
+    width: 800px;
+    height: 600px;
+    background: #000;
+    padding: 10px;
+  }
+  #game-map {
+    white-space: pre;
+    font-size: 14px;
+    line-height: 1;
+    background: #111;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    letter-spacing: 0.6em;
+    font-family: monospace;
+  }
+  #world-map {
+    white-space: pre;
+    font-size: 12px;
+    line-height: 1;
+    padding: 10px;
+    border: 1px solid #0f0;
+    background: #111;
+  }
+  #info-area {
+    width: 800px;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  #hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  #progress-bar {
+    width: 100px;
+    height: 10px;
+    border: 1px solid #0f0;
+    background: #000;
+    position: relative;
+    margin-left: 10px;
+  }
+  #progress-fill {
+    height: 100%;
+    background: #0f0;
+    width: 0%;
+    transition: width 0.5s;
+  }
+  #task-panel {
+    border: 1px solid #0f0;
+    padding: 5px;
+    font-size: 12px;
+    background: #111;
+    max-height: 80px;
+    overflow: auto;
+  }
+  #controls {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+  }
+  button {
+    background: #000;
+    color: #0f0;
+    border: 1px solid #0f0;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #0f0;
+    color: #000;
+  }
+  .player { color: #0f0; }
+  .cargo { color: #FF0; font-weight: bold; }
+  .delivery { color: #0F0; }
+  .mountain { color: #666; }
+  .water { color: #00f; }
+  .city-ground { color: #555; }
+  .grass { color: #0a0; }
+  .tree { color: #2d8930; }
+  .wall-corner { color: #fff; font-weight: bold; }
+  .door { 
+    color: #ff8c00; 
+    font-weight: bold;
+    text-shadow: 0 0 2px #ff8c00;
+    background-color: #222;
+  }

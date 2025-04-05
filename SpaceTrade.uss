@@ -3,7 +3,8 @@
     /* 重置样式 */
     background-color: rgb(0, 0, 0);
     color: rgb(0, 255, 0);
-    border-color: rgb(0, 255, 0);
+    border-color: transparent;
+    border-width: 0;
     -unity-font: resource('Arial');
     -unity-font-style: normal;
 }
@@ -12,7 +13,7 @@
 :root {
     --color-text: rgb(0, 255, 0);
     --color-background: rgb(0, 0, 0);
-    --color-border: rgb(0, 255, 0);
+    --color-border: transparent;
     --color-planet: rgb(0, 255, 255);
     --color-ship: rgb(255, 0, 255);
     --color-warning: rgb(255, 255, 0);
@@ -36,7 +37,8 @@
 .unity-collection-view {
     background-color: rgb(0, 0, 0) !important;
     color: rgb(0, 255, 0) !important;
-    border-color: rgb(0, 255, 0) !important;
+    border-color: transparent !important;
+    border-width: 0 !important;
 }
 
 .unity-base-field__label {
@@ -45,10 +47,11 @@
 
 .unity-base-text-field__input {
     background-color: rgb(0, 0, 0);
-    border-color: var(--color-border);
+    border-color: transparent;
     color: var(--color-text);
 }
 
+/* 强制 game-container 使用黑绿配色 */
 .game-container {
     flex-direction: column;
     align-items: stretch;
@@ -64,6 +67,7 @@
     bottom: 0;
 }
 
+/* 确保 main-content 显示为横向排列 */
 .main-content {
     flex-direction: row !important;
     flex-grow: 1;
@@ -95,15 +99,39 @@
     -unity-text-align: middle-center;
 }
 
-.map {
-    border-width: 1px;
-    border-color: var(--color-border);
+/* 新的布局设计 */
+.empty-map {
+    border-width: 0;
+    border-color: transparent;
     padding: 10px;
     margin-bottom: 10px;
     height: 60%;
-    min-height: 400px;
+    min-height: 300px;
     width: 100%;
-    background-color: rgb(0, 0, 0);
+    background-color: rgb(0, 0, 0) !important;
+}
+
+.status-container {
+    flex-direction: row;
+    height: 35%;
+    min-height: 150px;
+    width: 100%;
+}
+
+.status-section {
+    width: 50%;
+    margin-right: 10px;
+}
+
+.map {
+    width: 50%;
+    margin-left: 10px;
+    border-width: 0;
+    border-color: transparent;
+    padding: 10px;
+    margin-bottom: 10px;
+    height: 100%;
+    background-color: rgb(0, 0, 0) !important;
 }
 
 .map Label {
@@ -117,8 +145,8 @@
 }
 
 .section {
-    border-width: 1px;
-    border-color: var(--color-border);
+    border-width: 0;
+    border-color: transparent;
     padding: 10px;
     margin-bottom: 10px;
     width: 100%;
@@ -161,52 +189,50 @@
     padding: 5px;
     flex-grow: 0;
     flex-shrink: 0;
-    border-width: 1px;
-    border-color: var(--color-border);
+    border-width: 0;
+    border-color: transparent;
     -unity-text-align: middle-left;
     background-color: rgb(0, 0, 0) !important;
     color: rgb(0, 255, 0) !important;
-    width: 33%;
 }
 
 .td {
     padding: 5px;
     flex-grow: 0;
     flex-shrink: 0;
-    border-width: 1px;
-    border-color: var(--color-border);
+    border-width: 0;
+    border-color: transparent;
     -unity-text-align: middle-left;
     background-color: rgb(0, 0, 0) !important;
     color: rgb(0, 255, 0) !important;
-    width: 33%;
 }
 
-/* 我们将添加替代方案 - 为每列添加特定类 */
+/* 列宽定义 */
+.col-select {
+    width: 10%;
+    min-width: 30px;
+}
+
 .col-item {
     width: 30%;
     min-width: 80px;
 }
 
 .col-price {
-    width: 30%;
-    min-width: 80px;
+    width: 25%;
+    min-width: 70px;
 }
 
 .col-quantity {
-    width: 40%;
-    min-width: 100px;
-}
-
-.table-row {
-    flex-direction: row;
-    background-color: rgb(0, 0, 0) !important;
+    width: 35%;
+    min-width: 90px;
 }
 
 .button {
     background-color: rgb(0, 0, 0);
     color: rgb(0, 255, 0) !important;
-    border-width: 1px;
-    border-color: var(--color-border);
+    border-width: 0;
+    border-color: transparent;
     padding: 5px 10px;
     margin-right: 5px;
     margin-bottom: 5px;
@@ -229,24 +255,86 @@
     flex-wrap: wrap;
     overflow: auto;
     height: 90%;
+    background-color: rgb(0, 0, 0) !important;
 }
 
-.planet {
-    color: var(--color-planet);
+.panel-container {
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(0, 0, 0) !important;
 }
 
-.ship {
-    color: var(--color-ship);
+.item-list-container {
+    flex-grow: 1;
+    width: 75%;
+    height: 100%;
+    background-color: rgb(0, 0, 0) !important;
 }
 
-.warning {
-    color: var(--color-warning);
+.action-buttons {
+    width: 25%;
+    min-width: 120px;
+    margin-left: 10px;
+    flex-direction: column;
+    padding: 5px;
+    border-width: 0;
+    border-color: transparent;
+    background-color: rgb(0, 0, 0) !important;
 }
 
-.danger {
-    color: var(--color-danger);
+.action-title {
+    color: rgb(0, 255, 0) !important;
+    margin-bottom: 10px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
 }
 
+.table-body {
+    flex-direction: column;
+    background-color: rgb(0, 0, 0) !important;
+    overflow: auto;
+    height: 100%;
+    padding: 2px;
+}
+
+/* 选择指示器样式 */
+.selectable-row {
+    flex-direction: row;
+    background-color: rgb(0, 0, 0) !important;
+    border-width: 0;
+    border-color: rgb(0, 255, 0);
+    cursor: pointer;
+}
+
+.selectable-row:hover {
+    border-color: rgba(0, 255, 0, 0.8) !important;
+}
+
+.selection-marker {
+    width: 16px;
+    height: 16px;
+    margin: auto;
+    background-color: rgb(0, 0, 0) !important;
+    border-width: 0;
+    border-color: rgb(0, 255, 0);
+}
+
+.selected .selection-marker {
+    background-color: rgb(0, 255, 0) !important;
+}
+
+.empty-message {
+    padding: 10px;
+    -unity-text-align: middle-center;
+    color: rgba(0, 255, 0, 0.7);
+    -unity-font-style: italic;
+    width: 100%;
+    height: 40px;
+    margin-top: 10px;
+}
+
+/* Game over styles */
 .game-over {
     position: absolute;
     width: 100%;
@@ -273,100 +361,18 @@
     margin-bottom: 30px;
 }
 
-#status {
-    height: 35%;
-    min-height: 150px;
+.planet {
+    color: var(--color-planet);
 }
 
-#market {
-    height: 35%;
-    min-height: 200px;
+.ship {
+    color: var(--color-ship);
 }
 
-#inventory {
-    height: 35%;
-    min-height: 200px;
+.warning {
+    color: var(--color-warning);
 }
 
-#actions {
-    height: 25%;
-    min-height: 100px;
-}
-
-.table-body {
-    flex-direction: column;
-    background-color: rgb(0, 0, 0) !important;
-    overflow: auto;
-    height: 100%;
-    padding: 2px;
-}
-
-.panel-container {
-    flex-direction: row;
-    width: 100%;
-    height: 100%;
-    background-color: rgb(0, 0, 0) !important;
-}
-
-.item-list-container {
-    flex-grow: 1;
-    width: 75%;
-    height: 100%;
-    background-color: rgb(0, 0, 0) !important;
-}
-
-.action-buttons {
-    width: 25%;
-    min-width: 120px;
-    margin-left: 10px;
-    flex-direction: column;
-    padding: 5px;
-    border-width: 1px;
-    border-color: var(--color-border);
-    background-color: rgb(0, 0, 0) !important;
-}
-
-.action-title {
-    color: rgb(0, 255, 0) !important;
-    margin-bottom: 10px;
-    -unity-font-style: bold;
-    -unity-text-align: middle-center;
-}
-
-.selectable-row {
-    flex-direction: row;
-    background-color: rgb(0, 0, 0) !important;
-    border-width: 1px;
-    border-color: rgb(0, 255, 0);
-    cursor: pointer;
-}
-
-.selectable-row:hover {
-    border-color: rgba(0, 255, 0, 0.8) !important;
-}
-
-.selection-marker {
-    width: 10px;
-    height: 10px;
-    margin: auto;
-    background-color: rgb(0, 0, 0) !important;
-    border-width: 1px;
-    border-color: rgb(0, 255, 0);
-    position: relative;
-    left: 0;
-    right: 0;
-}
-
-.selected .selection-marker {
-    background-color: rgb(0, 255, 0) !important;
-}
-
-.empty-message {
-    padding: 10px;
-    -unity-text-align: middle-center;
-    color: rgba(0, 255, 0, 0.7);
-    -unity-font-style: italic;
-    width: 100%;
-    height: 40px;
-    margin-top: 10px;
+.danger {
+    color: var(--color-danger);
 } 

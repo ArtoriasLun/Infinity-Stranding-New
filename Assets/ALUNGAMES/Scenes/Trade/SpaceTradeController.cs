@@ -24,6 +24,10 @@ public class SpaceTradeController : MonoBehaviour
     // 游戏状态
     private GameState gameState;
 
+    // 在类中添加新的字段来跟踪选中的项目
+    private string selectedMarketItem = null;
+    private string selectedInventoryItem = null;
+
     private void OnEnable()
     {
         var root = uiDocument.rootVisualElement;
@@ -44,6 +48,52 @@ public class SpaceTradeController : MonoBehaviour
         // 初始化游戏
         resetGameButton.clicked += ResetGame;
         InitGame();
+
+        // 注册市场按钮
+        root.Q<Button>("market-buy-1").clicked += () => {
+            if (!string.IsNullOrEmpty(selectedMarketItem)) BuyGood(selectedMarketItem, 1);
+        };
+        
+        root.Q<Button>("market-buy-10").clicked += () => {
+            if (!string.IsNullOrEmpty(selectedMarketItem)) BuyGood(selectedMarketItem, 10);
+        };
+        
+        root.Q<Button>("market-buy-100").clicked += () => {
+            if (!string.IsNullOrEmpty(selectedMarketItem)) BuyGood(selectedMarketItem, 100);
+        };
+        
+        root.Q<Button>("market-buy-max").clicked += () => {
+            if (!string.IsNullOrEmpty(selectedMarketItem)) {
+                var marketItem = gameState.planets[gameState.currentPlanet].market[selectedMarketItem];
+                int maxAfford = Mathf.FloorToInt(gameState.credits / marketItem.price);
+                int maxSpace = gameState.cargoCapacity - gameState.cargo.Values.Sum(item => item.quantity);
+                int maxAmount = Mathf.Min(marketItem.quantity, maxAfford, maxSpace);
+                BuyGood(selectedMarketItem, maxAmount);
+            }
+        };
+        
+        // 注册库存按钮
+        root.Q<Button>("inventory-sell-1").clicked += () => {
+            if (!string.IsNullOrEmpty(selectedInventoryItem)) SellGood(selectedInventoryItem, 1);
+        };
+        
+        root.Q<Button>("inventory-sell-10").clicked += () => {
+            if (!string.IsNullOrEmpty(selectedInventoryItem)) SellGood(selectedInventoryItem, 10);
+        };
+        
+        root.Q<Button>("inventory-sell-100").clicked += () => {
+            if (!string.IsNullOrEmpty(selectedInventoryItem)) SellGood(selectedInventoryItem, 100);
+        };
+        
+        root.Q<Button>("inventory-sell-all").clicked += () => {
+            if (!string.IsNullOrEmpty(selectedInventoryItem) && gameState.cargo.ContainsKey(selectedInventoryItem)) {
+                SellGood(selectedInventoryItem, gameState.cargo[selectedInventoryItem].quantity);
+            }
+        };
+        
+        // 为表格容器添加键盘导航支持
+        marketItemsElement.RegisterCallback<KeyDownEvent>(OnMarketKeyDown);
+        inventoryItemsElement.RegisterCallback<KeyDownEvent>(OnInventoryKeyDown);
     }
 
     private void InitGame()
@@ -137,54 +187,51 @@ public class SpaceTradeController : MonoBehaviour
     {
         marketItemsElement.Clear();
         
-        var planetMarket = gameState.planets[gameState.currentPlanet].market;
+        var market = gameState.planets[gameState.currentPlanet].market;
+        bool hasTradableItems = false;
         
-        foreach (var goodPair in planetMarket)
+        foreach (var marketPair in market)
         {
-            var goodId = goodPair.Key;
-            var good = goodPair.Value;
-            bool disabled = goodId == "fuel" && gameState.fuel >= gameState.maxFuel;
+            var goodId = marketPair.Key;
+            var marketItem = marketPair.Value;
             
-            var row = new VisualElement();
-            row.AddToClassList("table-row");
-            
-            var nameCell = new VisualElement();
-            nameCell.AddToClassList("td");
-            nameCell.Add(new Label(gameState.goods[goodId].name));
-            
-            var priceCell = new VisualElement();
-            priceCell.AddToClassList("td");
-            priceCell.Add(new Label(good.price.ToString()));
-            
-            var quantityCell = new VisualElement();
-            quantityCell.AddToClassList("td");
-            quantityCell.Add(new Label(good.quantity.ToString()));
-            
-            var actionCell = new VisualElement();
-            actionCell.AddToClassList("td");
-            
-            int[] quantities = { 1, 10, 100, 1000 };
-            
-            foreach (var qty in quantities)
+            if (goodId != "fuel") // 燃料特殊处理
             {
-                var buyButton = new Button(() => BuyGood(goodId, qty));
-                buyButton.text = $"买{qty}";
-                buyButton.AddToClassList("button");
+                hasTradableItems = true;
+                var row = CreateSelectableRow(
+                    goodId, 
+                    GetGoodDisplayName(goodId), 
+                    $"{marketItem.price}", 
+                    $"{marketItem.quantity}"
+                );
                 
-                if (disabled)
-                {
-                    buyButton.SetEnabled(false);
-                }
-                
-                actionCell.Add(buyButton);
+                marketItemsElement.Add(row);
             }
-            
-            row.Add(nameCell);
-            row.Add(priceCell);
-            row.Add(quantityCell);
-            row.Add(actionCell);
-            
-            marketItemsElement.Add(row);
+        }
+        
+        // 如果没有可交易的商品，显示提示
+        if (!hasTradableItems) 
+        {
+            var emptyRow = new Label("这个星球没有可交易的商品");
+            emptyRow.AddToClassList("empty-message");
+            marketItemsElement.Add(emptyRow);
+            selectedMarketItem = null;
+            return;
+        }
+        
+        // 如果之前有选中的商品，尝试重新选择它
+        if (!string.IsNullOrEmpty(selectedMarketItem) && market.ContainsKey(selectedMarketItem))
+        {
+            SelectMarketRow(selectedMarketItem);
+        }
+        // 否则选择第一个商品（如果有）
+        else if (marketItemsElement.childCount > 0)
+        {
+            var firstRow = marketItemsElement.Q(className: "selectable-row");
+            if (firstRow != null)
+            {
+                SelectMarketRow(firstRow.userData as string);
+            }
         }
     }
 
@@ -192,45 +239,43 @@ public class SpaceTradeController : MonoBehaviour
     {
         inventoryItemsElement.Clear();
         
+        if (gameState.cargo.Count == 0)
+        {
+            var emptyRow = new Label("货舱是空的");
+            emptyRow.AddToClassList("empty-message");
+            inventoryItemsElement.Add(emptyRow);
+            selectedInventoryItem = null;
+            return;
+        }
+        
         foreach (var cargoPair in gameState.cargo)
         {
             var goodId = cargoPair.Key;
-            var cargo = cargoPair.Value;
+            var cargoItem = cargoPair.Value;
             
-            var row = new VisualElement();
-            row.AddToClassList("table-row");
-            
-            var nameCell = new VisualElement();
-            nameCell.AddToClassList("td");
-            nameCell.Add(new Label(gameState.goods[goodId].name));
-            
-            var quantityCell = new VisualElement();
-            quantityCell.AddToClassList("td");
-            quantityCell.Add(new Label(cargo.quantity.ToString()));
-            
-            var priceCell = new VisualElement();
-            priceCell.AddToClassList("td");
-            priceCell.Add(new Label(cargo.buyPrice.ToString()));
-            
-            var actionCell = new VisualElement();
-            actionCell.AddToClassList("td");
-            
-            int[] quantities = { 1, 10, 100, 1000 };
-            
-            foreach (var qty in quantities)
-            {
-                var sellButton = new Button(() => SellGood(goodId, qty));
-                sellButton.text = $"卖{qty}";
-                sellButton.AddToClassList("button");
-                actionCell.Add(sellButton);
-            }
-            
-            row.Add(nameCell);
-            row.Add(quantityCell);
-            row.Add(priceCell);
-            row.Add(actionCell);
+            var row = CreateSelectableRow(
+                goodId,
+                GetGoodDisplayName(goodId),
+                $"{cargoItem.quantity}",
+                $"{cargoItem.buyPrice}"
+            );
             
             inventoryItemsElement.Add(row);
+        }
+        
+        // 如果之前有选中的商品，尝试重新选择它
+        if (!string.IsNullOrEmpty(selectedInventoryItem) && gameState.cargo.ContainsKey(selectedInventoryItem))
+        {
+            SelectInventoryRow(selectedInventoryItem);
+        }
+        // 否则选择第一个商品（如果有）
+        else if (inventoryItemsElement.childCount > 0)
+        {
+            var firstRow = inventoryItemsElement.Q(className: "selectable-row");
+            if (firstRow != null)
+            {
+                SelectInventoryRow(firstRow.userData as string);
+            }
         }
     }
 
@@ -252,6 +297,10 @@ public class SpaceTradeController : MonoBehaviour
                 var travelButton = new Button(() => TravelTo(planetId));
                 travelButton.text = $"前往{planet.name} (燃料: {distance})";
                 travelButton.AddToClassList("button");
+                travelButton.style.borderLeftWidth = 0;
+                travelButton.style.borderRightWidth = 0;
+                travelButton.style.borderTopWidth = 0;
+                travelButton.style.borderBottomWidth = 0;
                 
                 travelOptionsElement.Add(travelButton);
             }
@@ -378,5 +427,232 @@ public class SpaceTradeController : MonoBehaviour
         
         gameOverElement.style.display = DisplayStyle.None;
         UpdateAll();
+    }
+
+    // 为键盘导航添加事件处理
+    private void OnMarketKeyDown(KeyDownEvent evt)
+    {
+        if (evt.keyCode == KeyCode.UpArrow || evt.keyCode == KeyCode.DownArrow)
+        {
+            var rows = marketItemsElement.Query(className: "selectable-row").ToList();
+            if (rows.Count == 0) return;
+            
+            int selectedIndex = -1;
+            for (int i = 0; i < rows.Count; i++)
+            {
+                if (rows[i].ClassListContains("selected"))
+                {
+                    selectedIndex = i;
+                    break;
+                }
+            }
+            
+            // 计算新的选择索引
+            if (evt.keyCode == KeyCode.UpArrow)
+                selectedIndex = (selectedIndex <= 0) ? rows.Count - 1 : selectedIndex - 1;
+            else // Down arrow
+                selectedIndex = (selectedIndex >= rows.Count - 1) ? 0 : selectedIndex + 1;
+            
+            // 设置新选择的商品
+            SelectMarketRow(rows[selectedIndex].userData as string);
+        }
+    }
+
+    private void OnInventoryKeyDown(KeyDownEvent evt)
+    {
+        if (evt.keyCode == KeyCode.UpArrow || evt.keyCode == KeyCode.DownArrow)
+        {
+            var rows = inventoryItemsElement.Query(className: "selectable-row").ToList();
+            if (rows.Count == 0) return;
+            
+            int selectedIndex = -1;
+            for (int i = 0; i < rows.Count; i++)
+            {
+                if (rows[i].ClassListContains("selected"))
+                {
+                    selectedIndex = i;
+                    break;
+                }
+            }
+            
+            // 计算新的选择索引
+            if (evt.keyCode == KeyCode.UpArrow)
+                selectedIndex = (selectedIndex <= 0) ? rows.Count - 1 : selectedIndex - 1;
+            else // Down arrow
+                selectedIndex = (selectedIndex >= rows.Count - 1) ? 0 : selectedIndex + 1;
+            
+            // 设置新选择的商品
+            SelectInventoryRow(rows[selectedIndex].userData as string);
+        }
+    }
+
+    // 创建可选择的行
+    private VisualElement CreateSelectableRow(string goodId, params string[] cells)
+    {
+        var row = new VisualElement();
+        row.AddToClassList("selectable-row");
+        row.userData = goodId; // 存储商品ID以便于选择
+        row.style.borderLeftWidth = 0;
+        row.style.borderRightWidth = 0;
+        row.style.borderTopWidth = 0;
+        row.style.borderBottomWidth = 0;
+        
+        // 创建选择指示器单元格
+        var selectTd = new VisualElement();
+        selectTd.AddToClassList("td");
+        selectTd.AddToClassList("col-select");
+        selectTd.style.width = 56;  // 设置宽度为56px，与表头保持一致
+        selectTd.style.borderLeftWidth = 0;
+        selectTd.style.borderRightWidth = 0;
+        selectTd.style.borderTopWidth = 0;
+        selectTd.style.borderBottomWidth = 0;
+        
+        // 添加方块指示器
+        var marker = new VisualElement();
+        marker.AddToClassList("selection-marker");
+        marker.style.borderLeftWidth = 0;
+        marker.style.borderRightWidth = 0;
+        marker.style.borderTopWidth = 0;
+        marker.style.borderBottomWidth = 0;
+        selectTd.Add(marker);
+        
+        row.Add(selectTd);
+        
+        // 为每个单元格创建内容
+        for (int i = 0; i < cells.Length; i++)
+        {
+            var td = new VisualElement();
+            td.AddToClassList("td");
+            td.style.borderLeftWidth = 0;
+            td.style.borderRightWidth = 0;
+            td.style.borderTopWidth = 0;
+            td.style.borderBottomWidth = 0;
+            
+            // 添加对应的列样式类
+            if (i == 0)
+                td.AddToClassList("col-item");
+            else if (i == 1)
+                td.AddToClassList("col-price");
+            else if (i == 2)
+                td.AddToClassList("col-quantity");
+            
+            var label = new Label(cells[i]);
+            label.style.overflow = Overflow.Hidden;
+            label.style.textOverflow = TextOverflow.Ellipsis;
+            label.style.unityTextAlign = TextAnchor.MiddleLeft;
+            label.style.whiteSpace = WhiteSpace.NoWrap;
+            label.style.borderLeftWidth = 0;
+            label.style.borderRightWidth = 0;
+            label.style.borderTopWidth = 0;
+            label.style.borderBottomWidth = 0;
+            
+            td.Add(label);
+            row.Add(td);
+        }
+        
+        // 添加点击事件，只改变选择状态
+        row.RegisterCallback<ClickEvent>(evt => {
+            if (row.parent == marketItemsElement) {
+                SelectMarketRow(goodId);
+                ClearInventorySelection();
+            }
+            else if (row.parent == inventoryItemsElement) {
+                SelectInventoryRow(goodId);
+                ClearMarketSelection();
+            }
+        });
+        
+        return row;
+    }
+
+    // 清除市场选择
+    private void ClearMarketSelection()
+    {
+        foreach (var row in marketItemsElement.Query(className: "selectable-row").ToList())
+        {
+            row.RemoveFromClassList("selected");
+        }
+        selectedMarketItem = null;
+    }
+
+    // 清除库存选择
+    private void ClearInventorySelection()
+    {
+        foreach (var row in inventoryItemsElement.Query(className: "selectable-row").ToList())
+        {
+            row.RemoveFromClassList("selected");
+        }
+        selectedInventoryItem = null;
+    }
+
+    // 选择市场行
+    private void SelectMarketRow(string goodId)
+    {
+        // 清除之前的选择
+        foreach (var row in marketItemsElement.Query(className: "selectable-row").ToList())
+        {
+            row.RemoveFromClassList("selected");
+        }
+        
+        // 选择新行
+        foreach (var row in marketItemsElement.Query(className: "selectable-row").ToList())
+        {
+            if ((string)row.userData == goodId)
+            {
+                row.AddToClassList("selected");
+                row.Focus(); // 给选中的行增加焦点
+                
+                // 让选中效果更明显
+                Debug.Log($"选中了市场商品: {GetGoodDisplayName(goodId)}");
+                break;
+            }
+        }
+        
+        selectedMarketItem = goodId;
+        
+        // 确保表格容器获得焦点，这样:focus选择器才能生效
+        marketItemsElement.Focus();
+    }
+
+    // 选择库存行
+    private void SelectInventoryRow(string goodId)
+    {
+        // 清除之前的选择
+        foreach (var row in inventoryItemsElement.Query(className: "selectable-row").ToList())
+        {
+            row.RemoveFromClassList("selected");
+        }
+        
+        // 选择新行
+        foreach (var row in inventoryItemsElement.Query(className: "selectable-row").ToList())
+        {
+            if ((string)row.userData == goodId)
+            {
+                row.AddToClassList("selected");
+                row.Focus(); // 给选中的行增加焦点
+                
+                // 让选中效果更明显
+                Debug.Log($"选中了库存商品: {GetGoodDisplayName(goodId)}");
+                break;
+            }
+        }
+        
+        selectedInventoryItem = goodId;
+        
+        // 确保表格容器获得焦点，这样:focus选择器才能生效
+        inventoryItemsElement.Focus();
+    }
+
+    // 获取商品的显示名称
+    private string GetGoodDisplayName(string goodId)
+    {
+        switch (goodId)
+        {
+            case "food": return "食物";
+            case "water": return "水";
+            case "ore": return "矿石";
+            case "fuel": return "燃料";
+            default: return goodId;
+        }
     }
 } 
