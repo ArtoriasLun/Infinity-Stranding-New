@@ -117,7 +117,7 @@ const Game = {
         return;
       }
       
-      this.terrain[y][x] = '~';
+        this.terrain[y][x] = '~';
       
       // 在第一格时就100%选择一个方向进行延伸
       // 随机选择一个方向: 0=右, 1=上, 2=左, 3=下
@@ -185,8 +185,8 @@ const Game = {
         
         // 检查边界
         if (nx < 0 || nx >= this.mapSize || ny < 0 || ny >= this.mapSize) {
-          break;
-        }
+            break;
+          }
         
         // 避免流入城市
         if (isCity && nx >= cityBounds.minX && nx <= cityBounds.maxX && 
@@ -218,7 +218,7 @@ const Game = {
               display += '<span class="grass">*</span>';
             } else if (tile === '.') {
               if (CityModule.isCityChunk(this.worldMap.currentX, this.worldMap.currentY)) {
-                display += '<span class="city-ground">.</span>';
+              display += '<span class="city-ground">.</span>';
               } else {
                 display += '<span class="plain">.</span>';
               }

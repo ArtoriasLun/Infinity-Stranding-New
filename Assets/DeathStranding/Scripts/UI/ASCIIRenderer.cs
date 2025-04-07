@@ -1,0 +1,353 @@
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace ALUNGAMES
+{
+    public class ASCIIRenderer : MonoBehaviour
+    {
+        [SerializeField] private UIDocument uiDocument;
+        
+        private VisualElement root;
+        private VisualElement gameMap;
+        private VisualElement worldMap;
+        
+        // 地图元素引用
+        private Label[,] mapElements;
+        
+        private void OnEnable()
+        {
+            Initialize();
+            
+            // 订阅区块变化事件 - 这时才重建地图
+            GameController.Instance.PlayerController.OnPlayerChangedChunk += UpdateWorldAndMaps;
+        }
+        
+        private void OnDisable()
+        {
+            // 取消订阅事件
+            if (GameController.Instance != null && GameController.Instance.PlayerController != null)
+            {
+                GameController.Instance.PlayerController.OnPlayerChangedChunk -= UpdateWorldAndMaps;
+            }
+        }
+        
+        // 初始化
+        public void Initialize()
+        {
+            if (uiDocument == null) return;
+            
+            root = uiDocument.rootVisualElement;
+            
+            // 获取地图元素
+            gameMap = root.Q<VisualElement>("game-map");
+            worldMap = root.Q<VisualElement>("world-map");
+            
+            // 初始渲染
+            RenderMap();
+            RenderWorldMap();
+        }
+        
+        // 重量级更新 - 在区块变化时重建地图
+        public void UpdateWorldAndMaps(int newX, int newY)
+        {
+            // 完整重建地图和世界地图
+            RenderMap();
+            RenderWorldMap();
+        }
+        
+        // 只更新玩家位置标记，不重新生成整个地图
+        public void UpdatePlayerPositionOnMap()
+        {
+            var playerController = GameController.Instance.PlayerController;
+            if (playerController == null || mapElements == null)
+                return;
+            
+            try {
+                TerrainType[,] terrain = GameController.Instance.GetCurrentTerrain();
+                if (terrain == null)
+                    return;
+                
+                int terrainSizeY = terrain.GetLength(0);
+                int terrainSizeX = terrain.GetLength(1);
+                
+                // 先重置所有单元格为原始地形显示
+                for (int y = 0; y < terrainSizeY; y++)
+                {
+                    for (int x = 0; x < terrainSizeX; x++)
+                    {
+                        if (mapElements[y, x] != null)
+                        {
+                            // 恢复原始地形字符和颜色
+                            mapElements[y, x].text = GetTerrainChar(terrain[y, x]);
+                            
+                            // 恢复原始颜色
+                            if (terrain[y, x] == TerrainType.Water)
+                                mapElements[y, x].style.color = new Color(0, 0.7f, 1f);
+                            else if (terrain[y, x] == TerrainType.Mountain)
+                                mapElements[y, x].style.color = new Color(0.7f, 0.7f, 0.7f);
+                            else
+                                mapElements[y, x].style.color = Color.green;
+                        }
+                    }
+                }
+                
+                // 标记玩家位置
+                int playerX = playerController.PlayerPosition.x;
+                int playerY = playerController.PlayerPosition.y;
+                
+                // 边界检查
+                if (playerX >= 0 && playerX < terrainSizeX && playerY >= 0 && playerY < terrainSizeY)
+                {
+                    if (mapElements[playerY, playerX] != null)
+                    {
+                        mapElements[playerY, playerX].text = "@";
+                        mapElements[playerY, playerX].style.color = Color.yellow;
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"更新玩家位置标记时出错: {e.Message}");
+            }
+        }
+        
+        // 渲染游戏地图
+        public void RenderMap()
+        {
+            try
+            {
+                // 检查gameMap是否存在
+                if (gameMap == null)
+                {
+                    Debug.LogError("RenderMap: gameMap为null");
+                    return;
+                }
+            
+                // 清空地图
+                gameMap.Clear();
+                
+                // 获取当前地形
+                TerrainType[,] terrain = GameController.Instance.GetCurrentTerrain();
+                if (terrain == null)
+                {
+                    Debug.LogError("RenderMap: 地形为null");
+                    return;
+                }
+                
+                // 获取实际地形大小，而不是使用固定值
+                int terrainSizeY = terrain.GetLength(0);
+                int terrainSizeX = terrain.GetLength(1);
+                
+                // 确保地形尺寸有效
+                if (terrainSizeY <= 0 || terrainSizeX <= 0)
+                {
+                    Debug.LogError($"RenderMap: 无效的地形尺寸: {terrainSizeY}x{terrainSizeX}");
+                    return;
+                }
+                
+                // 调整mapElements数组大小
+                mapElements = new Label[terrainSizeY, terrainSizeX];
+                
+                // 创建行容器
+                for (int y = 0; y < terrainSizeY; y++)
+                {
+                    var row = new VisualElement();
+                    row.style.flexDirection = FlexDirection.Row;
+                    row.style.height = 15; // 行高固定
+                    
+                    for (int x = 0; x < terrainSizeX; x++)
+                    {
+                        var cell = new Label();
+                        cell.style.width = 15;
+                        cell.style.height = 15;
+                        cell.style.unityTextAlign = TextAnchor.MiddleCenter;
+                        cell.style.color = Color.green;
+                        cell.style.fontSize = 14;
+                        
+                        // 根据地形设置字符
+                        string terrainChar = GetTerrainChar(terrain[y, x]);
+                        cell.text = terrainChar;
+                        
+                        // 特殊颜色
+                        if (terrain[y, x] == TerrainType.Water)
+                            cell.style.color = new Color(0, 0.7f, 1f);
+                        else if (terrain[y, x] == TerrainType.Mountain)
+                            cell.style.color = new Color(0.7f, 0.7f, 0.7f);
+                            
+                        // 存储引用
+                        mapElements[y, x] = cell;
+                        row.Add(cell);
+                    }
+                    
+                    gameMap.Add(row);
+                }
+                
+                // 如果有玩家，标记玩家位置
+                var playerController = GameController.Instance.PlayerController;
+                if (playerController != null)
+                {
+                    int playerX = playerController.PlayerPosition.x;
+                    int playerY = playerController.PlayerPosition.y;
+                    
+                    // 边界检查
+                    if (playerX >= 0 && playerX < terrainSizeX && playerY >= 0 && playerY < terrainSizeY)
+                    {
+                        if (mapElements[playerY, playerX] != null)
+                        {
+                            mapElements[playerY, playerX].text = "@";
+                            mapElements[playerY, playerX].style.color = Color.yellow;
+                        }
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"渲染地图时发生错误: {e.Message}\n{e.StackTrace}");
+            }
+        }
+        
+        // 渲染世界地图
+        public void RenderWorldMap()
+        {
+            try
+            {
+                // 检查worldMap是否存在
+                if (worldMap == null)
+                {
+                    Debug.LogError("RenderWorldMap: worldMap为null");
+                    return;
+                }
+                
+                // 清空世界地图
+                worldMap.Clear();
+                
+                // 通过GameController获取依赖
+                var playerController = GameController.Instance.PlayerController;
+                var cityManager = GameController.Instance.CityManager;
+                var gameConfig = GameController.Instance.GameConfig;
+                
+                // 检查依赖组件
+                if (playerController == null || cityManager == null)
+                {
+                    Debug.LogError("RenderWorldMap: playerController或cityManager为null");
+                    return;
+                }
+                
+                // 从gameConfig获取世界尺寸，如果不可用则使用默认值
+                int worldWidth = gameConfig != null ? gameConfig.worldWidth : 10;
+                int worldHeight = gameConfig != null ? gameConfig.worldHeight : 10;
+                
+                // 获取玩家当前的世界位置
+                int playerWorldX = playerController.GetCurrentWorldX();
+                int playerWorldY = playerController.GetCurrentWorldY();
+                
+                try
+                {
+                    // 创建世界地图行
+                    for (int y = 0; y < worldHeight; y++)
+                    {
+                        var row = new VisualElement();
+                        row.style.flexDirection = FlexDirection.Row;
+                        row.style.height = 20; // 行高
+                        
+                        for (int x = 0; x < worldWidth; x++)
+                        {
+                            var cell = new Label();
+                            cell.style.width = 20;
+                            cell.style.height = 20;
+                            cell.style.unityTextAlign = TextAnchor.MiddleCenter;
+                            cell.style.fontSize = 14;
+                            
+                            // 默认显示为空格
+                            cell.text = " ";
+                            cell.style.color = new Color(0.5f, 0.5f, 0.5f);
+                            
+                            // 标记城市
+                            bool isCity = false;
+                            if (cityManager != null)
+                            {
+                                isCity = cityManager.IsCityChunk(x, y);
+                                if (isCity)
+                                {
+                                    City city = cityManager.GetCityAtPosition(x, y);
+                                    if (city != null)
+                                    {
+                                        // 使用city.Symbol属性
+                                        if (city.Symbol != '?')
+                                        {
+                                            cell.text = city.Symbol.ToString();
+                                        }
+                                        else
+                                        {
+                                            // 如果符号是默认值，尝试从字典获取
+                                            string posKey = $"{x},{y}";
+                                            if (cityManager.GetCitySymbols().TryGetValue(posKey, out string symbol))
+                                            {
+                                                cell.text = symbol;
+                                            }
+                                            else
+                                            {
+                                                cell.text = "C";
+                                            }
+                                        }
+                                        cell.style.color = Color.white;
+                                    }
+                                    else
+                                    {
+                                        cell.text = "C";
+                                        cell.style.color = Color.white;
+                                    }
+                                }
+                            }
+                            
+                            // 标记玩家位置
+                            if (x == playerWorldX && y == playerWorldY)
+                            {
+                                cell.text = "P";
+                                cell.style.color = Color.yellow;
+                                cell.style.unityFontStyleAndWeight = FontStyle.Bold;
+                            }
+                            
+                            row.Add(cell);
+                        }
+                        
+                        worldMap.Add(row);
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError($"渲染世界地图单元格时出错: {e.Message}");
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"渲染世界地图时发生错误: {e.Message}\n{e.StackTrace}");
+            }
+        }
+        
+        // 获取地形对应字符
+        private string GetTerrainChar(TerrainType terrain)
+        {
+            switch (terrain)
+            {
+                case TerrainType.Grass:
+                    return "*";
+                case TerrainType.Mountain:
+                    return "^";
+                case TerrainType.Water:
+                    return "~";
+                case TerrainType.Tree:
+                    return "t";  // 小树
+                case TerrainType.LargeTree:
+                    return "T";  // 大树
+                case TerrainType.Road:
+                    return ".";
+                case TerrainType.City:
+                    return "#";
+                default:
+                    return " ";
+            }
+        }
+    }
+} 

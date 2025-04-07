@@ -1,0 +1,202 @@
+:root {
+    --color-text: rgb(0, 255, 0);
+    --color-background: rgb(0, 0, 0);
+    --color-border: rgb(0, 255, 0);
+    --color-highlight: rgb(0, 255, 0);
+    --color-water: rgb(0, 180, 255);
+    --color-mountain: rgb(180, 180, 180);
+    --color-warning: rgb(255, 255, 0);
+    --color-danger: rgb(255, 0, 0);
+    --color-city: rgb(255, 240, 0);
+    --color-grass: rgb(0, 200, 0);
+    --color-road: rgb(150, 150, 150);
+    --color-tree: rgb(0, 150, 0);
+}
+
+* {
+    background-color: transparent;
+    color: var(--color-text);
+    border-color: var(--color-border);
+    -unity-font: resource('Courier New');
+    -unity-font-style: normal;
+}
+
+.panel {
+    background-color: rgb(0, 0, 0);
+    border-radius: 0;
+    border-width: 1px;
+    border-color: var(--color-border);
+    padding: 10px;
+    margin: 5px;
+}
+
+.title-label {
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: var(--color-text);
+    -unity-text-align: middle-center;
+    margin-bottom: 10px;
+}
+
+.panel-title {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: var(--color-text);
+    margin-bottom: 8px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--color-border);
+    padding-bottom: 3px;
+}
+
+.game-map {
+    flex-grow: 1;
+    background-color: var(--color-background);
+    padding: 10px;
+    border-radius: 0;
+    border-width: 1px;
+    border-color: var(--color-border);
+    overflow: visible;
+    flex-direction: column;
+    -unity-font: resource('Courier New');
+    white-space: nowrap;
+    letter-spacing: 3px;
+}
+
+.world-map {
+    height: 100%;
+    background-color: var(--color-background);
+    padding: 5px;
+    border-radius: 0;
+    border-width: 1px;
+    border-color: var(--color-border);
+    overflow: hidden;
+    -unity-font: resource('Courier New');
+    white-space: nowrap;
+    flex-direction: column;
+    letter-spacing: 2px;
+}
+
+.status-row {
+    flex-direction: row;
+    margin: 5px 0;
+    align-items: center;
+}
+
+.status-row Label {
+    margin-right: 5px;
+    color: var(--color-text);
+}
+
+.progress-bar {
+    height: 12px;
+    background-color: var(--color-background);
+    flex-grow: 1;
+    border-radius: 0;
+    border-width: 1px;
+    border-color: var(--color-border);
+    margin-left: 5px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: var(--color-text);
+}
+
+.task-panel {
+    background-color: var(--color-background);
+    padding: 5px;
+    border-radius: 0;
+    border-width: 1px;
+    border-color: var(--color-border);
+    max-height: 100px;
+    overflow: scroll;
+    color: var(--color-text);
+    font-size: 14px;
+}
+
+.task-item {
+    margin-bottom: 5px;
+    padding: 3px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(0, 255, 0, 0.3);
+}
+
+.control-row {
+    flex-direction: row;
+    justify-content: center;
+    margin: 2px 0;
+}
+
+.direction-button {
+    width: 40px;
+    height: 40px;
+    margin: 2px;
+    font-size: 16px;
+    -unity-font-style: bold;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    border-width: 1px;
+    border-color: var(--color-border);
+    border-radius: 0;
+    transition: all 0.2s;
+}
+
+.direction-button:hover {
+    background-color: var(--color-text);
+    color: var(--color-background);
+}
+
+.action-button {
+    width: 120px;
+    height: 40px;
+    margin: 2px;
+    font-size: 14px;
+    -unity-font-style: bold;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    border-width: 1px;
+    border-color: var(--color-border);
+    border-radius: 0;
+    transition: all 0.2s;
+}
+
+.action-button:hover {
+    background-color: var(--color-text);
+    color: var(--color-background);
+}
+
+.ascii-cell {
+    -unity-text-align: middle-center;
+    -unity-font: resource('Courier New');
+    color: var(--color-text);
+    background-color: transparent;
+}
+
+.status-container {
+    margin-top: 5px;
+    padding: 5px;
+}
+
+.status-item {
+    padding: 5px;
+    border-width: 1px;
+    border-color: rgba(0, 255, 0, 0.3);
+    text-align: center;
+    margin: 0 5px;
+}
+
+.status-label {
+    font-size: 12px;
+    -unity-text-align: middle-center;
+    margin-bottom: 3px;
+    color: var(--color-text);
+    opacity: 0.8;
+}
+
+.status-value {
+    font-size: 16px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: var(--color-text);
+}

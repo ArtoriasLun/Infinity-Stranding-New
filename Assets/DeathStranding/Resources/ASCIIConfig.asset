@@ -1,0 +1,94 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ebbeb2f692c39d040a203a6b7ed076be, type: 3}
+  m_Name: ASCIIConfig
+  m_EditorClassIdentifier: 
+  terrains:
+  - terrainName: Grass
+    asciiChar: 42
+    sprite: {fileID: 21300000, guid: 7992e74a3789fe342bb15e308fba35e4, type: 2}
+  - terrainName: Mountain
+    asciiChar: 94
+    sprite: {fileID: 21300000, guid: 67316d8e365571f48919b9146560877c, type: 2}
+  - terrainName: Water
+    asciiChar: 126
+    sprite: {fileID: 21300000, guid: 3868ff1753a4d2d4086c839acb9b4d84, type: 2}
+  - terrainName: Tree
+    asciiChar: 116
+    sprite: {fileID: 21300000, guid: 3c5ce62812a92f34881ac1334c5e083b, type: 2}
+  - terrainName: LargeTree
+    asciiChar: 84
+    sprite: {fileID: 21300000, guid: 9323014cf42b5914994c72fe44ef6c57, type: 2}
+  - terrainName: Road
+    asciiChar: 46
+    sprite: {fileID: 21300000, guid: f7181ef0f99e6aa499cba8971b6c8716, type: 2}
+  - terrainName: City
+    asciiChar: 35
+    sprite: {fileID: 21300000, guid: 3fd4de8bc9594c9448d3eb14afa61173, type: 2}
+  cities:
+  - cityName: City_1
+    asciiChar: 945
+    sprite: {fileID: 21300000, guid: b4826aed38099da40b0744f456a4d58e, type: 2}
+  - cityName: City_2
+    asciiChar: 946
+    sprite: {fileID: 21300000, guid: 9b062fc21deaf0d4c947b5791ad3424b, type: 2}
+  - cityName: City_3
+    asciiChar: 947
+    sprite: {fileID: 21300000, guid: 10e5e26169d84d444b8c10d2ae0f21df, type: 2}
+  - cityName: City_4
+    asciiChar: 948
+    sprite: {fileID: 21300000, guid: dd2e0a57df56da14085df8cc19ebf623, type: 2}
+  - cityName: City_5
+    asciiChar: 949
+    sprite: {fileID: 21300000, guid: e150cbc62dea169408b371745c6a5799, type: 2}
+  - cityName: City_6
+    asciiChar: 950
+    sprite: {fileID: 21300000, guid: 470bc8c7b91819e4eb2ec40c6e180b2c, type: 2}
+  - cityName: City_7
+    asciiChar: 951
+    sprite: {fileID: 21300000, guid: 6f64cc7f6d38a7c4c9932147c0acc4a5, type: 2}
+  - cityName: City_8
+    asciiChar: 952
+    sprite: {fileID: 21300000, guid: 7781507cc4961d44f838f2dcdc976057, type: 2}
+  - cityName: City_9
+    asciiChar: 953
+    sprite: {fileID: 21300000, guid: 72091c899ff476d4d901f92491f4628b, type: 2}
+  - cityName: City_10
+    asciiChar: 954
+    sprite: {fileID: 21300000, guid: a358580e56307b24f808c22076660c6e, type: 2}
+  buildings:
+  - buildingName: Bar
+    asciiChar: 66
+    sprite: {fileID: 21300000, guid: eb9f62cb6734c46409a058d98636423d, type: 2}
+  - buildingName: Yard
+    asciiChar: 89
+    sprite: {fileID: 21300000, guid: eb0b2b5dada396e40a355f33a48e8838, type: 2}
+  - buildingName: Hotel
+    asciiChar: 72
+    sprite: {fileID: 21300000, guid: 99e1b33ba8fa3cd45a96bce71853d827, type: 2}
+  - buildingName: Exchange
+    asciiChar: 69
+    sprite: {fileID: 21300000, guid: a25c327526ec6064b83cf305c6430c57, type: 2}
+  characters:
+  - characterName: Player
+    asciiChar: 64
+    sprite: {fileID: 21300000, guid: 55ad5729b9a5eef4aa477b22ba3d644c, type: 2}
+  items:
+  - itemName: Task
+    asciiChar: 9632
+    sprite: {fileID: 21300000, guid: e228d91faf0db8f49ba0dfb6f96bb273, type: 2}
+  - itemName: Delivery
+    asciiChar: 9633
+    sprite: {fileID: 21300000, guid: 2a2a052ff4003454990793c60584f2e1, type: 2}
+  - itemName: Rest
+    asciiChar: 43
+    sprite: {fileID: 21300000, guid: b2473444d7950ef4c861c74b0e3052aa, type: 2}

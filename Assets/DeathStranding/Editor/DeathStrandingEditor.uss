@@ -1,0 +1,121 @@
+/* 全局样式 */
+.unity-base-field__label {
+    min-width: 160px;
+}
+
+/* 标题样式 */
+.title-label {
+    font-size: 20px;
+    -unity-font-style: bold;
+    margin: 10px 0;
+    color: rgb(65, 190, 255);
+    -unity-text-align: middle-center;
+}
+
+.section-title {
+    font-size: 16px;
+    -unity-font-style: bold;
+    margin-top: 15px;
+    margin-bottom: 10px;
+    color: rgb(255, 204, 0);
+}
+
+.category-label {
+    font-size: 14px;
+    -unity-font-style: bold;
+    margin-top: 12px;
+    margin-bottom: 8px;
+    padding-left: 5px;
+    color: rgb(181, 230, 181);
+    border-left: 2px solid rgb(181, 230, 181);
+}
+
+/* 按钮样式 */
+.setup-button {
+    height: 40px;
+    margin: 10px 0;
+    font-size: 14px;
+    -unity-font-style: bold;
+    background-color: rgb(65, 190, 255);
+    border-radius: 5px;
+    transition: background-color 0.2s;
+}
+
+.setup-button:hover {
+    background-color: rgb(100, 210, 255);
+}
+
+.config-button {
+    height: 30px;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    background-color: rgb(181, 230, 181);
+    border-radius: 5px;
+    -unity-font-style: bold;
+    transition: background-color 0.2s;
+}
+
+.config-button:hover {
+    background-color: rgb(200, 240, 200);
+}
+
+/* 分隔线 */
+.separator {
+    height: 1px;
+    margin: 10px 0;
+    background-color: rgb(64, 64, 64);
+}
+
+/* 配置部分 */
+.config-section {
+    margin: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: rgb(42, 42, 42);
+}
+
+.config-field {
+    margin: 5px 0;
+}
+
+.config-field-indent {
+    margin: 5px 0 5px 20px;
+}
+
+/* 滚动视图样式 */
+.unity-scroll-view {
+    flex-grow: 1;
+    margin: 0 5px;
+    max-height: 75%;
+}
+
+.unity-scroll-view__content-container {
+    padding-right: 15px; /* 给滚动条留出空间 */
+}
+
+/* 滚动条样式 */
+.unity-scroller {
+    width: 10px;
+    margin-right: 5px;
+}
+
+.unity-scroller__low-button, .unity-scroller__high-button {
+    display: none; /* 隐藏滚动条上下按钮 */
+}
+
+.unity-scroller__slider {
+    margin: 0;
+    width: 10px;
+}
+
+.unity-base-slider__tracker {
+    background-color: rgb(60, 60, 60);
+    border-radius: 5px;
+}
+
+.unity-base-slider__dragger {
+    background-color: rgb(120, 120, 120);
+    border-radius: 5px;
+    width: 8px;
+    left: 1px;
+} 
