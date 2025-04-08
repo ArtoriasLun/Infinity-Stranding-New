@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace ALUNGAMES
 {
@@ -42,6 +43,11 @@ namespace ALUNGAMES
 
         private TerrainType[,] currentTerrain;
 
+        // 区块缓存系统
+        private Dictionary<string, TerrainType[,]> chunkCache = new Dictionary<string, TerrainType[,]>();
+        private Queue<string> chunkLoadOrder = new Queue<string>();
+        private const int MAX_CACHED_CHUNKS = 100;
+
         // 提供对各组件的公共访问
         public DeathStrandingConfig GameConfig => gameConfig;
         public BuildingManager BuildingManager => buildingManager;
@@ -64,27 +70,24 @@ namespace ALUNGAMES
 
         private void Awake()
         {
-            // 实现单例模式
+            // 单例设置
             if (_instance != null && _instance != this)
             {
-                Debug.LogWarning("场景中存在多个GameController实例。销毁此实例。");
                 Destroy(gameObject);
                 return;
             }
-            
             _instance = this;
-            DontDestroyOnLoad(gameObject);
+            
+            // 验证组件
+            if (!ValidateComponents())
+            {
+                Debug.LogError("GameController: 组件验证失败，游戏可能无法正常运行");
+                return;
+            }
         }
 
         private void Start()
         {
-            // 验证所有必要的组件是否存在
-            if (!ValidateComponents())
-            {
-                Debug.LogError("GameController缺少必要组件，请检查Inspector面板中的引用");
-                return;
-            }
-
             // 初始化游戏
             InitializeGame();
         }
@@ -205,8 +208,17 @@ namespace ALUNGAMES
                 Debug.LogWarning("创建了默认的游戏配置，因为原配置为null");
             }
 
-            // 初始化城市   
-            cityManager.InitCities(gameConfig.cityCount, gameConfig.worldWidth, gameConfig.worldHeight);
+            // 先初始化城市
+            if (cityManager != null)
+            {
+                cityManager.InitCities(gameConfig.cityCount, gameConfig.worldWidth, gameConfig.worldHeight);
+                Debug.Log($"已初始化 {gameConfig.cityCount} 个城市");
+            }
+            else
+            {
+                Debug.LogError("CityManager为null，无法初始化城市");
+                return;
+            }
 
             // 生成初始地形
             GenerateTerrain();
@@ -219,16 +231,33 @@ namespace ALUNGAMES
             }
 
             // 初始化玩家
-            playerController.InitializePlayer(currentTerrain);
-
-            // 订阅玩家事件
-            playerController.OnPlayerChangedChunk += OnPlayerChangedChunk;
+            if (playerController != null)
+            {
+                playerController.InitializePlayer(currentTerrain);
+                // 订阅玩家事件
+                playerController.OnPlayerChangedChunk += OnPlayerChangedChunk;
+            }
+            else
+            {
+                Debug.LogError("PlayerController为null，无法初始化玩家");
+                return;
+            }
 
             // 更新UI
-            uiController.UpdateAllUI();
+            if (uiController != null)
+            {
+                uiController.UpdateAllUI();
+            }
+            else
+            {
+                Debug.LogWarning("UIController为null，无法更新UI");
+            }
             
             //强制渲染地图
-            playerController.ForceMapRender();
+            if (playerController != null)
+            {
+                playerController.ForceMapRender();
+            }
 
             Debug.Log("游戏初始化完成");
         }
@@ -252,14 +281,63 @@ namespace ALUNGAMES
             Debug.Log($"创建了默认地形 {defaultHeight}x{defaultWidth}");
         }
 
-        // 生成地形
+        // 获取区块缓存键
+        private string GetChunkKey(int worldX, int worldY)
+        {
+            return $"{worldX},{worldY}";
+        }
+
+        // 从缓存中获取区块
+        private TerrainType[,] GetChunkFromCache(int worldX, int worldY)
+        {
+            string key = GetChunkKey(worldX, worldY);
+            if (chunkCache.TryGetValue(key, out TerrainType[,] terrain))
+            {
+                Debug.Log($"从缓存加载区块: {key}");
+                return terrain;
+            }
+            return null;
+        }
+
+        // 将区块保存到缓存
+        private void SaveChunkToCache(int worldX, int worldY, TerrainType[,] terrain)
+        {
+            string key = GetChunkKey(worldX, worldY);
+            
+            // 如果这个区块已经在缓存中，先移除旧的加载顺序记录
+            if (chunkCache.ContainsKey(key))
+            {
+                var tempQueue = new Queue<string>();
+                while (chunkLoadOrder.Count > 0)
+                {
+                    string k = chunkLoadOrder.Dequeue();
+                    if (k != key) tempQueue.Enqueue(k);
+                }
+                chunkLoadOrder = tempQueue;
+            }
+            
+            // 添加新的区块到缓存
+            chunkCache[key] = terrain;
+            chunkLoadOrder.Enqueue(key);
+            
+            // 如果缓存超过最大限制，移除最早的区块
+            while (chunkCache.Count > MAX_CACHED_CHUNKS && chunkLoadOrder.Count > 0)
+            {
+                string oldestKey = chunkLoadOrder.Dequeue();
+                chunkCache.Remove(oldestKey);
+                Debug.Log($"移除最早的区块缓存: {oldestKey}");
+            }
+            
+            Debug.Log($"保存区块到缓存: {key}");
+        }
+
+        // 修改生成地形的方法
         private void GenerateTerrain()
         {
             try
             {
-                Debug.Log("正在生成地形...");
+                Debug.Log("正在生成/加载地形...");
 
-                // 确保terrainGenerator不为null
                 if (terrainGenerator == null)
                 {
                     Debug.LogError("TerrainGenerator为null，无法生成地形");
@@ -267,26 +345,46 @@ namespace ALUNGAMES
                     return;
                 }
 
-                // 从gameConfig获取地图大小，如果为null则使用默认值
-                int mapWidth = gameConfig != null ? gameConfig.mapWidth : 40;
-                int mapHeight = gameConfig != null ? gameConfig.mapHeight : 30;
+                int currentX = playerController.GetCurrentWorldX();
+                int currentY = playerController.GetCurrentWorldY();
+                
+                // 先尝试从缓存加载
+                TerrainType[,] cachedTerrain = GetChunkFromCache(currentX, currentY);
+                if (cachedTerrain != null)
+                {
+                    currentTerrain = cachedTerrain;
+                    Debug.Log($"从缓存加载区块 ({currentX},{currentY})");
+                }
+                else
+                {
+                    // 如果缓存中没有，生成新的地形
+                    int mapWidth = gameConfig != null ? gameConfig.mapWidth : 40;
+                    int mapHeight = gameConfig != null ? gameConfig.mapHeight : 30;
 
-                currentTerrain = terrainGenerator.GenerateTerrain(
-                    mapWidth,
-                    mapHeight,
-                    playerController.GetCurrentWorldX(),
-                    playerController.GetCurrentWorldY()
-                );
+                    currentTerrain = terrainGenerator.GenerateTerrain(
+                        mapWidth,
+                        mapHeight,
+                        currentX,
+                        currentY
+                    );
 
-                // 验证生成的地形
+                    // 保存到缓存
+                    if (currentTerrain != null)
+                    {
+                        SaveChunkToCache(currentX, currentY, currentTerrain);
+                        Debug.Log($"生成并缓存新区块 ({currentX},{currentY})");
+                    }
+                }
+
+                // 验证地形
                 if (currentTerrain == null)
                 {
-                    Debug.LogError("TerrainGenerator返回了null地形，创建默认地形");
+                    Debug.LogError("地形生成/加载失败，创建默认地形");
                     CreateDefaultTerrain();
                 }
                 else
                 {
-                    Debug.Log($"成功生成地形: {currentTerrain.GetLength(0)}x{currentTerrain.GetLength(1)}");
+                    Debug.Log($"当前地形大小: {currentTerrain.GetLength(0)}x{currentTerrain.GetLength(1)}");
                 }
 
                 // 更新玩家的地形引用
@@ -294,7 +392,7 @@ namespace ALUNGAMES
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"生成地形时出错: {e.Message}");
+                Debug.LogError($"生成/加载地形时出错: {e.Message}");
                 CreateDefaultTerrain();
             }
         }

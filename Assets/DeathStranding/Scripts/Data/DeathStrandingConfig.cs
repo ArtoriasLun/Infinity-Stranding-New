@@ -27,6 +27,10 @@ namespace ALUNGAMES
         public float grassChance = 0.3f;           // 草地生成概率
         
         [Header("City Generation")]
+        [Range(2, 10)]
+        public int minCityCount = 2;                 // 最小城市数量
+        [Range(2, 10)]
+        public int maxCityCount = 5;                 // 最大城市数量
         public int cityCount = 5;                  // 世界地图中的城市数量
         public int citySize = 20;                  // 城市大小
         

@@ -5,7 +5,8 @@ namespace ALUNGAMES
 {
     public class PlayerController : MonoBehaviour
     {
-        private Vector2Int playerPosition = new Vector2Int(15, 15);
+        // 将玩家初始位置设置在地图中心，这样更容易与城市重叠
+        private Vector2Int playerPosition = new Vector2Int(20, 20);
         private int moveCount = 0; // 累计移动计数，用于地形阻力
         private TerrainType[,] terrain;
         private int carriedCargo = 0;
@@ -90,11 +91,22 @@ namespace ALUNGAMES
             }
             
             // 检查目标是否可以通行
-            if (!IsTilePassable(terrain[newY, newX]))
+            TerrainType nextTile = terrain[newY, newX];
+            if (!IsTilePassable(nextTile))
+            {
+                // 如果是山脉，增加疲劳
+                if (nextTile == TerrainType.Mountain && carriedCargo > 0)
+                {
+                    if (Random.value < GetTerrainStrainChance(TerrainType.Mountain))
+                    {
+                        strain = Mathf.Min(strain + GetTerrainStrainAmount(TerrainType.Mountain), gameConfig.maxStrain);
+                        CheckCargoDropDueToStrain();
+                    }
+                }
                 return;
+            }
                 
             TerrainType currentTile = terrain[playerPosition.y, playerPosition.x];
-            TerrainType nextTile = terrain[newY, newX];
             moveCount++;
             
             // 处理当前位置或移动到新位置
@@ -132,36 +144,33 @@ namespace ALUNGAMES
                         strain = Mathf.Min(strain + GetTerrainStrainAmount(TerrainType.Water), gameConfig.maxStrain);
                     }
                 }
+                return; // 如果还不能移动，直接返回
             }
-            else
+            
+            // 可以移动或者是原地等待
+            if (!isWaiting) {
+                // 只有非等待状态才更新位置
+                playerPosition.x = targetX;
+                playerPosition.y = targetY;
+                moveCount = 0;
+            }
+            
+            // 移动后或等待时可能增加疲劳
+            if (carriedCargo > 0)
             {
-                // 可以移动或者是原地等待
-                if (!isWaiting) {
-                    // 只有非等待状态才更新位置
-                    playerPosition.x = targetX;
-                    playerPosition.y = targetY;
-                    moveCount = 0;
-                }
-                
-                // 移动后或等待时可能增加疲劳
-                if (carriedCargo > 0)
+                float strainChance = GetTerrainStrainChance(targetTile);
+                if (strainChance > 0 && Random.value < strainChance)
                 {
-                    if (targetTile == TerrainType.Mountain && Random.value < GetTerrainStrainChance(TerrainType.Mountain))
-                    {
-                        strain = Mathf.Min(strain + GetTerrainStrainAmount(TerrainType.Mountain), gameConfig.maxStrain);
-                    }
-                    else if (targetTile == TerrainType.Water && Random.value < GetTerrainStrainChance(TerrainType.Water))
-                    {
-                        strain = Mathf.Min(strain + GetTerrainStrainAmount(TerrainType.Water), gameConfig.maxStrain);
-                    }
+                    int strainAmount = GetTerrainStrainAmount(targetTile);
+                    strain = Mathf.Min(strain + strainAmount, gameConfig.maxStrain);
+                    
+                    // 检查是否需要掉落货物
+                    CheckCargoDropDueToStrain();
                 }
-                
-                // 通知移动
-                OnPlayerMoved?.Invoke();
-                
-                // 处理疲劳导致货物掉落
-                CheckCargoDropDueToStrain();
             }
+            
+            // 通知移动
+            OnPlayerMoved?.Invoke();
         }
         
         // 检查因疲劳导致的货物掉落
@@ -226,12 +235,31 @@ namespace ALUNGAMES
             }
         }
         
-        // 检查地块是否可以通行
+        // 检查地形是否可通过
         private bool IsTilePassable(TerrainType tileType)
         {
-            return tileType != TerrainType.Mountain && 
-                   tileType != TerrainType.Tree && 
-                   tileType != TerrainType.LargeTree;
+            switch (tileType)
+            {
+                case TerrainType.Empty:
+                case TerrainType.Road:
+                case TerrainType.Grass:
+                case TerrainType.Mountain:
+                case TerrainType.Water:
+                case TerrainType.CityGate:
+                case TerrainType.BuildingGate:
+                    return true;
+                case TerrainType.Tree:
+                case TerrainType.LargeTree:
+                case TerrainType.CityWall:
+                case TerrainType.BuildingWall:
+                case TerrainType.Bar:
+                case TerrainType.Yard:
+                case TerrainType.Hotel:
+                case TerrainType.Exchange:
+                    return false;
+                default:
+                    return true;
+            }
         }
         
         // 获取地形移动阻力
@@ -245,6 +273,10 @@ namespace ALUNGAMES
                     return gameConfig.terrain.mountain.moveResistance;
                 case TerrainType.Water:
                     return gameConfig.terrain.river.moveResistance;
+                case TerrainType.Empty:
+                case TerrainType.Road:
+                case TerrainType.Grass:
+                    return 1;
                 default:
                     return 1;
             }
@@ -261,6 +293,10 @@ namespace ALUNGAMES
                     return gameConfig.terrain.mountain.strainChance;
                 case TerrainType.Water:
                     return gameConfig.terrain.river.strainChance;
+                case TerrainType.Empty:
+                case TerrainType.Road:
+                case TerrainType.Grass:
+                    return 0f;
                 default:
                     return 0f;
             }
@@ -277,6 +313,10 @@ namespace ALUNGAMES
                     return gameConfig.terrain.mountain.strainAmount;
                 case TerrainType.Water:
                     return gameConfig.terrain.river.strainAmount;
+                case TerrainType.Empty:
+                case TerrainType.Road:
+                case TerrainType.Grass:
+                    return 0;
                 default:
                     return 0;
             }

@@ -12,7 +12,7 @@ namespace ALUNGAMES
         private InputAction moveAction;
         private InputAction interactAction;
         private InputAction statusAction;
-        public float moveTime = 0.3f, mt;
+        float mt;
         
         // 移动模式相关变量
         [SerializeField] private bool isHoldMode = false; // 默认为点击模式

@@ -7,13 +7,24 @@ namespace ALUNGAMES
     // 地形类型枚举
     public enum TerrainType
     {
-        Grass,
-        Mountain,
-        Water,
-        Tree,
-        LargeTree,  // 2x2大树
-        Road,
-        City
+        Empty,          // 空地 ' '
+        Road,           // 平地 '.'
+        Grass,          // 草地 '*'
+        Mountain,       // 山脉 '^'
+        Water,          // 河流 '~'
+        CityWall,       // 城墙 '#'
+        CityGate,       // 城门 '|'
+        BuildingWall,   // 建筑墙 '#'
+        BuildingGate,   // 建筑门 '|'
+        TaskPoint,      // 任务点 '■'
+        DeliveryPoint,  // 交付点 '□'
+        RestPoint,      // 休息点 '+'
+        Tree,           // 小树 't'
+        LargeTree,      // 大树 'T'
+        Bar,            // 酒吧 'B'
+        Yard,           // 仓库 'Y'
+        Hotel,          // 旅馆 'H'
+        Exchange        // 交易所 'E'
     }
 
     // 方向枚举
@@ -39,12 +50,14 @@ namespace ALUNGAMES
         public int Width;
         public int Height;
         public string[,] Layout;
+        public Dictionary<string, List<Vector2Int>> SpecialPoints = new Dictionary<string, List<Vector2Int>>();
 
         public Building(string type, Vector2Int localPosition)
         {
             Type = type;
             LocalPosition = localPosition;
             Name = type.ToUpper(); // 默认名称为类型的大写形式
+            SpecialPoints = new Dictionary<string, List<Vector2Int>>();
         }
     }
 

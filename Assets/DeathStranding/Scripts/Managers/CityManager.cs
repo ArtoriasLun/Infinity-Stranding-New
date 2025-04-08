@@ -10,33 +10,106 @@ namespace ALUNGAMES
         private Dictionary<string, string> citySymbols = new Dictionary<string, string>();
         private readonly string[] citySymbolPool = { "α", "β", "γ", "δ", "ε", "ζ", "η", "θ", "ι", "κ" };
         
-        // 基础的空城市布局 - 将动态调整大小，复刻自JS版本
-        private readonly string[,] baseCityLayout = new string[,] {
-            {".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "."},
-            {".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "."}
-        };
+        // 城市生成参数
+        private const int MIN_CITY_SIZE = 20;
+        private const int MAX_CITY_SIZE = 30;
+        private const float CITY_SPACING = 40f;
+
+        // 多种城市布局模板
+        private readonly List<string[,]> cityLayouts = new List<string[,]>();
+
+        private void InitializeCityLayouts()
+        {
+            // 标准方形布局
+            string[,] standardLayout = new string[,] {
+                {".", ".", ".", ".", ".", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "|", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "|"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#"}
+            };
+
+            // L形布局
+            string[,] lShapedLayout = new string[,] {
+                {".", ".", ".", ".", ".", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {".", ".", ".", ".", ".", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", ".", ".", ".", "."},
+                {".", ".", ".", ".", ".", "|", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", ".", ".", ".", "."},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", ".", ".", ".", "."},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", ".", ".", ".", "."},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", ".", ".", ".", "."},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "|", ".", ".", ".", "."},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", ".", ".", ".", "."},
+                {".", ".", ".", ".", ".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", ".", ".", ".", "."},
+                {".", ".", ".", ".", ".", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", ".", ".", ".", "."}
+            };
+
+            // 圆形布局
+            string[,] circularLayout = new string[,] {
+                {".", ".", ".", ".", ".", ".", ".", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", ".", ".", ".", ".", ".", "."},
+                {".", ".", ".", ".", ".", "#", "#", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", "#", "#", ".", ".", ".", "."},
+                {".", ".", ".", ".", "#", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", "#", ".", ".", "."},
+                {".", ".", ".", "#", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", "#", ".", "."},
+                {".", ".", "#", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", "#", "."},
+                {".", "#", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", "#"},
+                {".", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {"#", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {"#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {"#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {"#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {"#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {"#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {"#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {"#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {"#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#"},
+                {"#", "|", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "|"},
+                {"#", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", "#"},
+                {".", "#", "#", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", ".", "#", "#", "."},
+                {".", ".", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", "#", ".", "."}
+            };
+
+            cityLayouts.Add(standardLayout);
+            cityLayouts.Add(lShapedLayout);
+            cityLayouts.Add(circularLayout);
+        }
+
+        // 在构造函数或Awake中初始化布局
+        private void Awake()
+        {
+            InitializeCityLayouts();
+        }
 
         // 初始化城市生成
         public void InitCities(int count, int worldWidth, int worldHeight)
@@ -50,6 +123,27 @@ namespace ALUNGAMES
             cities.Clear();
             citySymbols.Clear();
             HashSet<string> usedPositions = new HashSet<string>();
+
+            // 确保城市数量在配置范围内
+            DeathStrandingConfig gameConfig = GameController.Instance.GameConfig;
+            count = Mathf.Clamp(count, gameConfig.minCityCount, gameConfig.maxCityCount);
+
+            // 首先在左上角 (0,0) 生成第一个城市（α城市）
+            string firstCityPosKey = "0,0";
+            usedPositions.Add(firstCityPosKey);
+            
+            City firstCity = new City(
+                GetRandomCityName(),
+                new Vector2Int(0, 0),
+                40  // 使用较大的尺寸确保覆盖玩家初始位置
+            );
+            
+            firstCity.Buildings = GenerateCityBuildings(40);  // 生成更大的建筑布局
+            firstCity.Symbol = 'α';  // 使用α作为第一个城市的符号
+            citySymbols[firstCityPosKey] = "α";
+            cities.Add(firstCity);
+            
+            Debug.Log($"在 (0,0) 生成了α城市: {firstCity.Name}，尺寸: 40x40");
 
             while (cities.Count < count)
             {
@@ -68,7 +162,7 @@ namespace ALUNGAMES
                         20 // 固定城市大小为20
                     );
 
-                    city.Buildings = GenerateCityBuildings();
+                    city.Buildings = GenerateCityBuildings(20);  // 为其他城市使用标准尺寸20
                     
                     // 使用希腊字母池中的符号
                     int symbolIndex = 0;
@@ -116,46 +210,45 @@ namespace ALUNGAMES
         }
 
         // 为城市生成建筑
-        private List<Building> GenerateCityBuildings()
+        private List<Building> GenerateCityBuildings(int size)
         {
             List<Building> buildings = new List<Building>();
-            string[] buildingTypes = { "bar", "yard", "hotel", "exchange" };
-
+            
             // 通过GameController.Instance获取BuildingManager
             BuildingManager buildingManager = GameController.Instance.BuildingManager;
-            
-            // 确保每个城市都有yard
+            if (buildingManager == null)
+            {
+                Debug.LogError("BuildingManager not found!");
+                return buildings;
+            }
+
+            // 确保每个城市都有yard（交付点）
             Building yardBuilding = buildingManager.GenerateBuilding("yard");
             if (yardBuilding != null)
             {
                 buildings.Add(yardBuilding);
+                Debug.Log($"Added yard building with size: {yardBuilding.Width}x{yardBuilding.Height}");
             }
 
-            // 从剩余建筑类型中随机选择，确保每种类型最多只有一个
-            List<string> remainingTypes = new List<string>(buildingTypes);
-            remainingTypes.Remove("yard");
+            // 可能的建筑类型
+            string[] buildingTypes = { "bar", "hotel", "exchange" };
             
-            // 随机打乱顺序
-            for (int i = 0; i < remainingTypes.Count; i++)
+            // 随机选择1-2个额外建筑
+            int additionalCount = Random.Range(1, 3);
+            List<string> availableTypes = new List<string>(buildingTypes);
+            
+            for (int i = 0; i < additionalCount && availableTypes.Count > 0; i++)
             {
-                int randIndex = Random.Range(i, remainingTypes.Count);
-                string temp = remainingTypes[i];
-                remainingTypes[i] = remainingTypes[randIndex];
-                remainingTypes[randIndex] = temp;
-            }
-
-            // 选择1-3个其他建筑
-            int additionalCount = 1 + Random.Range(0, Mathf.Min(3, remainingTypes.Count));
-
-            for (int i = 0; i < additionalCount; i++)
-            {
-                if (i < remainingTypes.Count)
+                // 随机选择一个建筑类型
+                int typeIndex = Random.Range(0, availableTypes.Count);
+                string buildingType = availableTypes[typeIndex];
+                availableTypes.RemoveAt(typeIndex); // 移除已选择的类型，确保不重复
+                
+                Building building = buildingManager.GenerateBuilding(buildingType);
+                if (building != null)
                 {
-                    Building building = buildingManager.GenerateBuilding(remainingTypes[i]);
-                    if (building != null)
-                    {
-                        buildings.Add(building);
-                    }
+                    buildings.Add(building);
+                    Debug.Log($"Added {buildingType} building with size: {building.Width}x{building.Height}");
                 }
             }
 
@@ -175,104 +268,165 @@ namespace ALUNGAMES
         }
 
         // 将城市布局注入到地形中 - 更新以与JS版本一致
-        public void InjectCityLayout(TerrainType[,] terrain, int mapSize, int currentX, int currentY)
+        public void InjectCityLayout(TerrainType[,] terrain, int mapWidth, int currentX, int currentY)
         {
-            City currentCity = GetCityAtPosition(currentX, currentY);
-            if (currentCity == null) return;
+            if (cityLayouts.Count == 0) return;
 
-            // 为城市清理空间
-            int citySize = 20; // 固定城市大小为20，与JS版本一致
-            int startX = Mathf.FloorToInt((mapSize - citySize) / 2f);
-            int startY = Mathf.FloorToInt((mapSize - citySize) / 2f);
-
-            // 添加城市外墙
-            for (int x = startX; x < startX + citySize; x++)
+            // 获取ASCIIConfig
+            ASCIIConfig asciiConfig = GameController.Instance.ASCIIRenderer.asciiConfig;
+            if (asciiConfig == null)
             {
-                terrain[startY, x] = TerrainType.City;  // 上墙
-                terrain[startY + citySize - 1, x] = TerrainType.City;  // 下墙
+                Debug.LogError("ASCIIConfig not found!");
+                return;
             }
 
-            for (int y = startY; y < startY + citySize; y++)
+            // 随机选择一个布局
+            string[,] selectedLayout = cityLayouts[Random.Range(0, cityLayouts.Count)];
+            int layoutHeight = selectedLayout.GetLength(0);
+            int layoutWidth = selectedLayout.GetLength(1);
+
+            // 首先设置城市基础布局
+            for (int y = 0; y < layoutHeight; y++)
             {
-                terrain[y, startX] = TerrainType.City;  // 左墙
-                terrain[y, startX + citySize - 1] = TerrainType.City;  // 右墙
-            }
-
-            // 在墙上创建四个入口(四个方向的中间位置)
-            int midX = startX + Mathf.FloorToInt(citySize / 2f);
-            int midY = startY + Mathf.FloorToInt(citySize / 2f);
-
-            // 设置入口处的地形为Road (与JavaScript版本一致)
-            terrain[startY, midX] = TerrainType.Road;  // 上方门
-            terrain[midY, startX + citySize - 1] = TerrainType.Road;  // 右方门
-            terrain[startY + citySize - 1, midX] = TerrainType.Road;  // 下方门
-            terrain[midY, startX] = TerrainType.Road;  // 左方门
-
-            // 放置城市内部建筑
-            PlaceBuildingsInCity(currentCity, terrain, startX, startY, citySize);
-        }
-
-        // 在城市内放置建筑 - 更新以与JS版本一致
-        private void PlaceBuildingsInCity(City city, TerrainType[,] terrain, int startX, int startY, int citySize)
-        {
-            int buildingX = startX + 2;
-            int buildingY = startY + 2;
-
-            foreach (Building building in city.Buildings)
-            {
-                // 存储建筑物位置坐标
-                Vector2Int localPos = new Vector2Int(buildingX - startX, buildingY - startY);
-                building.LocalPosition = localPos;
-
-                // 放置建筑名称在建筑物上方
-                if (building.Name.Length > 0)
+                for (int x = 0; x < layoutWidth; x++)
                 {
-                    int nameX = buildingX + Mathf.FloorToInt((building.Width - building.Name.Length) / 2f);
-                    for (int i = 0; i < building.Name.Length && i + nameX < terrain.GetLength(1); i++)
-                    {
-                        terrain[buildingY - 1, nameX + i] = TerrainType.City;
-                    }
-                }
+                    int worldX = currentX + x;
+                    int worldY = currentY + y;
 
-                // 放置建筑布局
-                for (int y = 0; y < building.Height; y++)
-                {
-                    for (int x = 0; x < building.Width; x++)
+                    if (worldX >= 0 && worldX < mapWidth && worldY >= 0 && worldY < terrain.GetLength(0))
                     {
-                        if (buildingX + x < terrain.GetLength(1) && buildingY + y < terrain.GetLength(0))
+                        char tileChar = selectedLayout[y, x][0];
+                        var tileConfigs = asciiConfig.GetTileConfigsByChar(tileChar);
+                        
+                        if (tileConfigs != null && tileConfigs.Count > 0)
                         {
-                            // 设置建筑物墙壁和地板
-                            if (building.Layout[y, x] == "#")
-                                terrain[buildingY + y, buildingX + x] = TerrainType.City;
-                            else if (building.Layout[y, x] == ".")
-                                terrain[buildingY + y, buildingX + x] = TerrainType.Road;
-                            else if (building.Layout[y, x] == "|" || building.Layout[y, x] == "-")
-                                terrain[buildingY + y, buildingX + x] = TerrainType.Road; // 门
-                            else if (building.Layout[y, x] == "■" || building.Layout[y, x] == "□" || building.Layout[y, x] == "+")
-                                terrain[buildingY + y, buildingX + x] = TerrainType.Road; // 特殊点
+                            var config = tileConfigs[0];
+                            terrain[worldY, worldX] = (TerrainType)config.id;
                         }
                     }
                 }
+            }
 
-                // 更新下一个建筑的位置
-                buildingX += building.Width + 2;
-                if (buildingX + building.Width >= startX + citySize - 1)
+            // 获取当前城市
+            City currentCity = GetCityAtPosition(currentX, currentY);
+            if (currentCity == null)
+            {
+                Debug.LogError($"No city found at position ({currentX}, {currentY})");
+                return;
+            }
+
+            // 确保城市有建筑
+            if (currentCity.Buildings == null || currentCity.Buildings.Count == 0)
+            {
+                currentCity.Buildings = GenerateCityBuildings(20);
+            }
+
+            // 计算可用于放置建筑的区域（避开城墙和门）
+            int buildingAreaStartX = 3;  // 增加边距，确保建筑不会太靠近城墙
+            int buildingAreaStartY = 3;
+            int buildingAreaWidth = layoutWidth - 6;  // 两边各留3格空间
+            int buildingAreaHeight = layoutHeight - 6;
+
+            // 跟踪已使用的区域
+            bool[,] usedArea = new bool[layoutHeight, layoutWidth];
+
+            // 放置建筑
+            foreach (Building building in currentCity.Buildings)
+            {
+                bool placed = false;
+                int maxAttempts = 30;  // 增加尝试次数
+                int attempts = 0;
+
+                while (!placed && attempts < maxAttempts)
                 {
-                    buildingX = startX + 2;
-                    buildingY += building.Height + 2;
+                    int buildingX = buildingAreaStartX + Random.Range(0, buildingAreaWidth - building.Width);
+                    int buildingY = buildingAreaStartY + Random.Range(0, buildingAreaHeight - building.Height);
+
+                    // 检查这个位置是否可以放置建筑
+                    bool canPlace = true;
+                    // 检查建筑周围的额外空间
+                    for (int y = -1; y <= building.Height && canPlace; y++)
+                    {
+                        for (int x = -1; x <= building.Width && canPlace; x++)
+                        {
+                            int checkX = buildingX + x;
+                            int checkY = buildingY + y;
+                            
+                            // 确保检查的位置在城市范围内
+                            if (checkX >= 0 && checkX < layoutWidth && 
+                                checkY >= 0 && checkY < layoutHeight)
+                            {
+                                if (usedArea[checkY, checkX])
+                                {
+                                    canPlace = false;
+                                }
+                            }
+                        }
+                    }
+
+                    if (canPlace)
+                    {
+                        // 标记已使用的区域
+                        for (int y = -1; y <= building.Height; y++)
+                        {
+                            for (int x = -1; x <= building.Width; x++)
+                            {
+                                int markX = buildingX + x;
+                                int markY = buildingY + y;
+                                if (markX >= 0 && markX < layoutWidth && 
+                                    markY >= 0 && markY < layoutHeight)
+                                {
+                                    usedArea[markY, markX] = true;
+                                }
+                            }
+                        }
+
+                        // 放置建筑
+                        building.LocalPosition = new Vector2Int(buildingX, buildingY);
+                        for (int y = 0; y < building.Height; y++)
+                        {
+                            for (int x = 0; x < building.Width; x++)
+                            {
+                                int worldX = currentX + buildingX + x;
+                                int worldY = currentY + buildingY + y;
+
+                                if (worldX >= 0 && worldX < mapWidth && 
+                                    worldY >= 0 && worldY < terrain.GetLength(0))
+                                {
+                                    char tileChar = building.Layout[y, x][0];
+                                    var tileConfigs = asciiConfig.GetTileConfigsByChar(tileChar);
+                                    
+                                    if (tileConfigs != null && tileConfigs.Count > 0)
+                                    {
+                                        var config = tileConfigs[0];
+                                        terrain[worldY, worldX] = (TerrainType)config.id;
+                                    }
+                                }
+                            }
+                        }
+                        placed = true;
+                        Debug.Log($"Successfully placed {building.Name} at ({buildingX}, {buildingY})");
+                    }
+
+                    attempts++;
+                }
+
+                if (!placed)
+                {
+                    Debug.LogWarning($"Failed to place building {building.Name} after {maxAttempts} attempts");
                 }
             }
         }
 
         // 在城市周围添加树木 - 更新以与JS版本一致
-        public void AddTreesAroundCity(TerrainType[,] terrain, int mapSize, int currentX, int currentY)
+        public void AddTreesAroundCity(TerrainType[,] terrain, int mapWidth, int currentX, int currentY)
         {
             City currentCity = GetCityAtPosition(currentX, currentY);
             if (currentCity == null) return;
             
             int citySize = 20; // 固定城市大小为20，与JS版本一致
-            int startX = Mathf.FloorToInt((mapSize - citySize) / 2f);
-            int startY = Mathf.FloorToInt((mapSize - citySize) / 2f);
+            int startX = Mathf.FloorToInt((mapWidth - citySize) / 2f);
+            int startY = Mathf.FloorToInt((terrain.GetLength(0) - citySize) / 2f);
             int endX = startX + citySize - 1;
             int endY = startY + citySize - 1;
 
@@ -280,15 +434,15 @@ namespace ALUNGAMES
             float treeDensity = 0.8f;
 
             // 在城市墙外1-3格范围内添加树木
-            for (int y = Mathf.Max(0, startY - 3); y <= Mathf.Min(mapSize - 1, endY + 3); y++)
+            for (int y = Mathf.Max(0, startY - 3); y <= Mathf.Min(terrain.GetLength(0) - 1, endY + 3); y++)
             {
-                for (int x = Mathf.Max(0, startX - 3); x <= Mathf.Min(mapSize - 1, endX + 3); x++)
+                for (int x = Mathf.Max(0, startX - 3); x <= Mathf.Min(mapWidth - 1, endX + 3); x++)
                 {
-                    // 只在城市墙外添加树木
+                    // 只在城市墙外添加树木，并且不改变原有地形
                     if (x < startX || x > endX || y < startY || y > endY)
                     {
-                        // 随机决定是否放置树木
-                        if (Random.value > treeDensity && terrain[y, x] == TerrainType.Grass)
+                        // 随机决定是否放置树木，但不覆盖山脉和河流
+                        if (Random.value > treeDensity && terrain[y, x] == TerrainType.Road)
                         {
                             terrain[y, x] = TerrainType.Tree;
                         }
@@ -309,9 +463,10 @@ namespace ALUNGAMES
             if (building == null) return false;
 
             // 获取城市在当前地图中的起始位置
-            int mapSize = terrain.GetLength(0);
-            int startX = Mathf.FloorToInt((mapSize - 20) / 2f);
-            int startY = Mathf.FloorToInt((mapSize - 20) / 2f);
+            int mapHeight = terrain.GetLength(0);
+            int mapWidth = terrain.GetLength(1);
+            int startX = Mathf.FloorToInt((mapWidth - 20) / 2f);
+            int startY = Mathf.FloorToInt((mapHeight - 20) / 2f);
             
             // 计算玩家在建筑内的局部坐标
             int localX = playerPosition.x - (startX + building.LocalPosition.x);
@@ -340,9 +495,10 @@ namespace ALUNGAMES
         private Building FindBuildingAtPosition(City city, int x, int y, TerrainType[,] terrain)
         {
             // 先获取城市在当前地图中的起始位置（基于20x20的固定尺寸）
-            int mapSize = terrain.GetLength(0);
-            int startX = Mathf.FloorToInt((mapSize - 20) / 2f);
-            int startY = Mathf.FloorToInt((mapSize - 20) / 2f);
+            int mapHeight = terrain.GetLength(0);
+            int mapWidth = terrain.GetLength(1);
+            int startX = Mathf.FloorToInt((mapWidth - 20) / 2f);
+            int startY = Mathf.FloorToInt((mapHeight - 20) / 2f);
             
             foreach (Building building in city.Buildings)
             {
@@ -473,6 +629,70 @@ namespace ALUNGAMES
         public Dictionary<string, string> GetCitySymbols()
         {
             return citySymbols;
+        }
+
+        public void GenerateCity(TerrainType[,] terrain, Vector2Int position, int index)
+        {
+            int citySize = Random.Range(MIN_CITY_SIZE, MAX_CITY_SIZE + 1);
+            string citySymbol = index < citySymbolPool.Length ? citySymbolPool[index] : "C";
+
+            City city = new City(citySymbol, position, citySize);
+
+            // 生成城市边界
+            for (int x = 0; x < citySize; x++)
+            {
+                for (int y = 0; y < citySize; y++)
+                {
+                    bool isEdge = x == 0 || x == citySize - 1 || y == 0 || y == citySize - 1;
+                    bool isGate = false;
+
+                    // 在四个方向的中点设置城门
+                    if ((x == citySize / 2 && (y == 0 || y == citySize - 1)) ||
+                        (y == citySize / 2 && (x == 0 || x == citySize - 1)))
+                    {
+                        isGate = true;
+                    }
+
+                    int worldX = position.x + x;
+                    int worldY = position.y + y;
+
+                    if (isEdge)
+                    {
+                        terrain[worldY, worldX] = isGate ? TerrainType.CityGate : TerrainType.CityWall;
+                    }
+                    else
+                    {
+                        terrain[worldY, worldX] = TerrainType.Road;
+                    }
+                }
+            }
+
+            // 生成建筑
+            GenerateBuildings(terrain, city);
+        }
+
+        private void GenerateBuildings(TerrainType[,] terrain, City city)
+        {
+            // 在这里实现建筑生成逻辑
+            // 1. Bar (小型或中型，必须有任务点，可能有休息点)
+            // 2. Yard (中型、大型或L型，必须有交付点)
+            // 3. Hotel (中型或大型，必须有休息点)
+            // 4. Exchange (小型或中型，无特殊功能点)
+
+            // 建筑生成逻辑...
+        }
+
+        public bool IsCityLocation(Vector2Int position, List<City> existingCities)
+        {
+            foreach (var city in existingCities)
+            {
+                float distance = Vector2.Distance(position, city.Position);
+                if (distance < CITY_SPACING)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 } 

@@ -2,6 +2,7 @@
     <Style src="project://database/Assets/DeathStranding/UI/DeathStranding.uss?fileID=7433441132597879392&amp;guid=ff15139f20e63344098878017a68655c&amp;type=3#DeathStranding" />
     <ui:VisualElement name="game-map-container" enabled="true" style="flex-grow: 1; margin: 2px; opacity: 1; display: flex; visibility: visible; overflow: visible; background-color: rgb(0, 0, 0); position: absolute; top: 0; left: 0; right: 20%; bottom: 120px;">
         <ui:VisualElement name="game-map" enabled="true" class="game-map" style="flex-grow: 1; border-color: rgb(0, 255, 0); opacity: 1; overflow: visible; visibility: visible; display: flex; background-color: transparent;" />
+        <ui:VisualElement name="Frame" enabled="true" class="game-map" style="flex-grow: 1; border-color: rgb(0, 255, 0); opacity: 1; overflow: visible; visibility: visible; display: none; background-color: transparent;" />
     </ui:VisualElement>
     <ui:VisualElement name="world-map-container" style="width: 20%; margin: 2px; height: auto; display: flex; visibility: visible; opacity: 1; overflow: visible; position: absolute; top: 0; right: 0; bottom: 120px;">
         <ui:Label text="MAP" name="world-map-title" class="panel-title" style="color: rgb(0, 255, 0); margin: 5px; opacity: 1; height: 27px; width: 144px;" />

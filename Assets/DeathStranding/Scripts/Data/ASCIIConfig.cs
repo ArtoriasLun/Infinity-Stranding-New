@@ -1,48 +1,90 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 [CreateAssetMenu(fileName = "ASCIIConfig", menuName = "😊/ASCIIConfig")]
 public class ASCIIConfig : ScriptableObject
 {
     [System.Serializable]
-    public struct TerrainConfig
+    public struct TileConfig
     {
-        public string terrainName; // 地形名称（如 "Plains", "Mountains"）
-        public char asciiChar;     // 对应的 ASCII 字符（如 '.' 或 '^'）
-        public Sprite sprite;      // 对应的 Sprite
-    }
-    [System.Serializable]
-    public struct CityConfig
-    {
-        public string cityName; // 城市名称 如citySymbolPool字符的英语
-        public char asciiChar;     // 对应的 ASCII 字符citySymbolPool = { "α", "β", "γ", "δ", "ε", "ζ", "η", "θ", "ι", "κ" };
-        public Sprite sprite;      // 对应的 Sprite
-    }
-    [System.Serializable]
-    public struct BuildingConfig
-    {
-        public string buildingName; // 建筑名称（如 "House", "Shop"）
-        public char asciiChar;     // 对应的 ASCII 字符（如 'H' 或 'S'）
-        public Sprite sprite;      // 对应的 Sprite
-    }
-    [System.Serializable]
-    public struct CharacterConfig
-    {
-        public string characterName; // 角色名称（如 "Player", "Enemy"）
-        public char asciiChar;       // 对应的 ASCII 字符（如 '@' 或 'M'）
-        public Sprite sprite;        // 对应的 Sprite
+        public int id;              // Tile的唯一ID
+        public string name;         // 名称
+        public char asciiChar;      // ASCII字符
+        public Color color;         // 颜色
+        public Sprite sprite;       // 精灵图
+        public bool isPassable;     // 是否可通过
+        public int moveResistance;  // 移动阻力
+        public float strainChance;  // 疲劳概率
+        public int strainAmount;    // 疲劳量
+        public bool isWall;         // 是否是墙
+        public bool isGate;         // 是否是门
+        public bool isSpecialPoint; // 是否是特殊点
     }
 
-    [System.Serializable]
-    public struct ItemConfig
+    public TileConfig[] tiles;  // 所有tile的配置
+
+    // 游戏参数配置
+    public int maxCargo = 100;         // 最大货物量
+    public int maxStrain = 100;        // 最大疲劳值
+    public float bitcoinReward = 10f;  // 任务奖励
+    public float mountainStrainChance = 0.3f;  // 山地增加疲劳概率
+    public int mountainStrainAmount = 10;      // 山地疲劳增加量
+    public int waterStrainAmount = 10;         // 河流疲劳增加量
+    public int mountainMoveResistance = 3;     // 山地移动阻力
+    public int waterMoveResistance = 2;        // 河流移动阻力
+
+    // 快速查找表
+    private Dictionary<int, TileConfig> tileConfigsById;
+    private Dictionary<char, List<TileConfig>> tileConfigsByChar;
+
+    private void OnEnable()
     {
-        public string itemName;    // 物品名称（如 "Cargo", "DeliveryPoint"）
-        public char asciiChar;     // 对应的 ASCII 字符（如 '*' 或 'S'）
-        public Sprite sprite;      // 对应的 Sprite
+        InitializeLookupTables();
     }
 
-    public TerrainConfig[] terrains;   // 地形配置
-    public CityConfig[] cities; // 城市配置
-    public BuildingConfig[] buildings; // 建筑配置
-    public CharacterConfig[] characters; // 角色配置
-    public ItemConfig[] items;         // 物品配置
+    private void InitializeLookupTables()
+    {
+        // 初始化ID查找表
+        tileConfigsById = new Dictionary<int, TileConfig>();
+        tileConfigsByChar = new Dictionary<char, List<TileConfig>>();
+
+        foreach (var tile in tiles)
+        {
+            // ID查找表
+            tileConfigsById[tile.id] = tile;
+
+            // 字符查找表
+            if (!tileConfigsByChar.ContainsKey(tile.asciiChar))
+            {
+                tileConfigsByChar[tile.asciiChar] = new List<TileConfig>();
+            }
+            tileConfigsByChar[tile.asciiChar].Add(tile);
+        }
+    }
+
+    // 根据ID获取配置
+    public TileConfig GetTileConfig(int id)
+    {
+        return tileConfigsById.TryGetValue(id, out var config) ? config : default;
+    }
+
+    // 根据字符获取所有可能的配置
+    public List<TileConfig> GetTileConfigsByChar(char c)
+    {
+        return tileConfigsByChar.TryGetValue(c, out var configs) ? configs : new List<TileConfig>();
+    }
+
+    // 将所有颜色设置为白色
+    public void SetAllColorsToWhite()
+    {
+        for (int i = 0; i < tiles.Length; i++)
+        {
+            var config = tiles[i];
+            config.color = Color.white;
+            tiles[i] = config;
+        }
+        
+        // 重新初始化查找表
+        InitializeLookupTables();
+    }
 }

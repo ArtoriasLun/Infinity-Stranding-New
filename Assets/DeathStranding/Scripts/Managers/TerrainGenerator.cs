@@ -46,12 +46,12 @@ namespace ALUNGAMES
                 float seed = Random.Range(0f, 1000f);
                 float[,] heightMap = GenerateHeightMap(seed);
                 
-                // 初始化为平地
+                // 初始化为空地
                 for (int y = 0; y < mapHeight; y++)
                 {
                     for (int x = 0; x < mapWidth; x++)
                     {
-                        terrain[y, x] = TerrainType.Grass;
+                        terrain[y, x] = TerrainType.Empty;
                     }
                 }
                 
@@ -82,8 +82,9 @@ namespace ALUNGAMES
                     // 如果是城市区块，注入城市布局
                     cityManager.InjectCityLayout(terrain, mapWidth, currentWorldX, currentWorldY);
                     
-                    // 在城市周围添加树木
-                    cityManager.AddTreesAroundCity(terrain, mapWidth, currentWorldX, currentWorldY);
+                    // 在城市周围添加树木，使用较小的尺寸作为mapSize以确保安全
+                    int minSize = Mathf.Min(mapWidth, mapHeight);
+                    cityManager.AddTreesAroundCity(terrain, minSize, currentWorldX, currentWorldY);
                 }
                 
                 return terrain;
@@ -135,15 +136,46 @@ namespace ALUNGAMES
                 {
                     if (heightMap[y, x] > gameConfig.mountainThreshold)
                     {
-                        terrain[y, x] = TerrainType.Mountain;
+                        // 添加随机性，不是所有超过阈值的点都生成山地
+                        if (Random.value < 0.7f)  // 70%的概率生成山地
+                        {
+                            // 检查周围是否已经有山地，避免连续生成
+                            bool hasNearbyMountain = false;
+                            for (int dy = -1; dy <= 1 && !hasNearbyMountain; dy++)
+                            {
+                                for (int dx = -1; dx <= 1; dx++)
+                                {
+                                    int nx = x + dx;
+                                    int ny = y + dy;
+                                    if (nx >= 0 && nx < mapWidth && ny >= 0 && ny < mapHeight)
+                                    {
+                                        if (terrain[ny, nx] == TerrainType.Mountain)
+                                        {
+                                            hasNearbyMountain = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            if (!hasNearbyMountain)
+                            {
+                                terrain[y, x] = TerrainType.Mountain;
+                            }
+                            else
+                            {
+                                terrain[y, x] = TerrainType.Road;
+                            }
+                        }
+                        else
+                        {
+                            terrain[y, x] = TerrainType.Road;
+                        }
                     }
-                    else if (heightMap[y, x] > gameConfig.grassThreshold && Random.value < gameConfig.grassChance)
+                    else if (heightMap[y, x] > gameConfig.grassThreshold)
                     {
-                        terrain[y, x] = TerrainType.Grass;
-                    }
-                    else
-                    {
-                        terrain[y, x] = TerrainType.Road; // 使用Road代表平地
+                        // 10%的概率生成草地
+                        terrain[y, x] = Random.value < 0.1f ? TerrainType.Grass : TerrainType.Road;
                     }
                 }
             }

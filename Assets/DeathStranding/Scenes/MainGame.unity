@@ -197,7 +197,7 @@ Transform:
   m_GameObject: {fileID: 145692439}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 32, y: 19.5, z: -10}
+  m_LocalPosition: {x: 34, y: 11, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -780,9 +780,6 @@ MonoBehaviour:
   characterTilemap: {fileID: 349129314}
   asciiRenderer: {fileID: 0}
   createTilemapsAutomatically: 1
-  pixelsPerUnit: 32
-  renderOnStart: 1
-  useUIElementsMap: 1
   tileSize: 1
   debugMode: 0
 --- !u!4 &1442637852
@@ -960,7 +957,7 @@ MonoBehaviour:
   moveTime: 0.1
   mt: 0
   isHoldMode: 0
-  clickModeDelay: 0.3
+  clickModeDelay: 0.1
   holdModeDelay: 0.15
 --- !u!114 &1889308595
 MonoBehaviour:

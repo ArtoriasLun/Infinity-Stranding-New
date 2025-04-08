@@ -7,6 +7,8 @@ namespace ALUNGAMES
     public class ASCIIRenderer : MonoBehaviour
     {
         [SerializeField] private UIDocument uiDocument;
+        public ASCIIConfig asciiConfig;
+        [SerializeField] private bool showTileIds = false; // 调试开关：显示tile的ID
         
         private VisualElement root;
         private VisualElement gameMap;
@@ -14,6 +16,26 @@ namespace ALUNGAMES
         
         // 地图元素引用
         private Label[,] mapElements;
+        private Dictionary<TerrainType, ASCIIConfig.TileConfig> terrainConfigs;
+        
+        private void Awake()
+        {
+            // 加载配置
+            if (asciiConfig == null)
+            {
+                asciiConfig = Resources.Load<ASCIIConfig>("ASCIIConfig");
+            }
+            
+            // 初始化地形配置字典
+            terrainConfigs = new Dictionary<TerrainType, ASCIIConfig.TileConfig>();
+            foreach (var config in asciiConfig.tiles)
+            {
+                if (config.id >= 0 && config.id < System.Enum.GetValues(typeof(TerrainType)).Length)
+                {
+                    terrainConfigs[(TerrainType)config.id] = config;
+                }
+            }
+        }
         
         private void OnEnable()
         {
@@ -71,6 +93,10 @@ namespace ALUNGAMES
                 int terrainSizeY = terrain.GetLength(0);
                 int terrainSizeX = terrain.GetLength(1);
                 
+                bool isInCity = GameController.Instance.CityManager.IsCityChunk(
+                    GameController.Instance.CurrentWorldX,
+                    GameController.Instance.CurrentWorldY);
+                
                 // 先重置所有单元格为原始地形显示
                 for (int y = 0; y < terrainSizeY; y++)
                 {
@@ -78,16 +104,7 @@ namespace ALUNGAMES
                     {
                         if (mapElements[y, x] != null)
                         {
-                            // 恢复原始地形字符和颜色
-                            mapElements[y, x].text = GetTerrainChar(terrain[y, x]);
-                            
-                            // 恢复原始颜色
-                            if (terrain[y, x] == TerrainType.Water)
-                                mapElements[y, x].style.color = new Color(0, 0.7f, 1f);
-                            else if (terrain[y, x] == TerrainType.Mountain)
-                                mapElements[y, x].style.color = new Color(0.7f, 0.7f, 0.7f);
-                            else
-                                mapElements[y, x].style.color = Color.green;
+                            RenderCell(mapElements[y, x], terrain[y, x], isInCity);
                         }
                     }
                 }
@@ -101,8 +118,7 @@ namespace ALUNGAMES
                 {
                     if (mapElements[playerY, playerX] != null)
                     {
-                        mapElements[playerY, playerX].text = "@";
-                        mapElements[playerY, playerX].style.color = Color.yellow;
+                        RenderCell(mapElements[playerY, playerX], terrain[playerY, playerX], isInCity, true);
                     }
                 }
             }
@@ -135,7 +151,7 @@ namespace ALUNGAMES
                     return;
                 }
                 
-                // 获取实际地形大小，而不是使用固定值
+                // 获取实际地形大小
                 int terrainSizeY = terrain.GetLength(0);
                 int terrainSizeX = terrain.GetLength(1);
                 
@@ -148,6 +164,11 @@ namespace ALUNGAMES
                 
                 // 调整mapElements数组大小
                 mapElements = new Label[terrainSizeY, terrainSizeX];
+                
+                // 检查是否在城市中
+                bool isInCity = GameController.Instance.CityManager.IsCityChunk(
+                    GameController.Instance.CurrentWorldX,
+                    GameController.Instance.CurrentWorldY);
                 
                 // 创建行容器
                 for (int y = 0; y < terrainSizeY; y++)
@@ -162,19 +183,11 @@ namespace ALUNGAMES
                         cell.style.width = 15;
                         cell.style.height = 15;
                         cell.style.unityTextAlign = TextAnchor.MiddleCenter;
-                        cell.style.color = Color.green;
                         cell.style.fontSize = 14;
                         
-                        // 根据地形设置字符
-                        string terrainChar = GetTerrainChar(terrain[y, x]);
-                        cell.text = terrainChar;
+                        // 使用新的渲染方法
+                        RenderCell(cell, terrain[y, x], isInCity);
                         
-                        // 特殊颜色
-                        if (terrain[y, x] == TerrainType.Water)
-                            cell.style.color = new Color(0, 0.7f, 1f);
-                        else if (terrain[y, x] == TerrainType.Mountain)
-                            cell.style.color = new Color(0.7f, 0.7f, 0.7f);
-                            
                         // 存储引用
                         mapElements[y, x] = cell;
                         row.Add(cell);
@@ -195,8 +208,7 @@ namespace ALUNGAMES
                     {
                         if (mapElements[playerY, playerX] != null)
                         {
-                            mapElements[playerY, playerX].text = "@";
-                            mapElements[playerY, playerX].style.color = Color.yellow;
+                            RenderCell(mapElements[playerY, playerX], terrain[playerY, playerX], isInCity, true);
                         }
                     }
                 }
@@ -280,16 +292,8 @@ namespace ALUNGAMES
                                         }
                                         else
                                         {
-                                            // 如果符号是默认值，尝试从字典获取
-                                            string posKey = $"{x},{y}";
-                                            if (cityManager.GetCitySymbols().TryGetValue(posKey, out string symbol))
-                                            {
-                                                cell.text = symbol;
-                                            }
-                                            else
-                                            {
-                                                cell.text = "C";
-                                            }
+                                            // 如果符号是默认值，使用"C"表示城市中心
+                                            cell.text = "C";
                                         }
                                         cell.style.color = Color.white;
                                     }
@@ -329,24 +333,86 @@ namespace ALUNGAMES
         // 获取地形对应字符
         private string GetTerrainChar(TerrainType terrain)
         {
+            if (showTileIds)
+            {
+                return ((int)terrain).ToString();
+            }
+
+            if (terrainConfigs.TryGetValue(terrain, out var config))
+            {
+                return config.asciiChar.ToString();
+            }
+            
+            // 默认字符
             switch (terrain)
             {
+                case TerrainType.Empty:
+                    return " ";
+                case TerrainType.Road:
+                    return ".";
                 case TerrainType.Grass:
                     return "*";
                 case TerrainType.Mountain:
                     return "^";
                 case TerrainType.Water:
                     return "~";
-                case TerrainType.Tree:
-                    return "t";  // 小树
-                case TerrainType.LargeTree:
-                    return "T";  // 大树
-                case TerrainType.Road:
-                    return ".";
-                case TerrainType.City:
+                case TerrainType.CityWall:
+                case TerrainType.BuildingWall:
                     return "#";
+                case TerrainType.CityGate:
+                case TerrainType.BuildingGate:
+                    return "|";
+                case TerrainType.TaskPoint:
+                    return "■";
+                case TerrainType.DeliveryPoint:
+                    return "□";
+                case TerrainType.RestPoint:
+                    return "+";
+                case TerrainType.Tree:
+                    return "t";
+                case TerrainType.LargeTree:
+                    return "T";
+                case TerrainType.Bar:
+                    return "B";
+                case TerrainType.Yard:
+                    return "Y";
+                case TerrainType.Hotel:
+                    return "H";
+                case TerrainType.Exchange:
+                    return "E";
                 default:
-                    return " ";
+                    return "?";
+            }
+        }
+
+        // 获取地形颜色
+        private Color GetTerrainColor(TerrainType terrain, bool isInCity)
+        {
+            // 优先从配置中获取颜色
+            if (terrainConfigs.TryGetValue(terrain, out var config))
+            {
+                return config.color;
+            }
+            
+            // 如果配置中没有找到，返回默认白色
+            return Color.white;
+        }
+
+        // 更新渲染单元格的方法
+        private void RenderCell(Label cell, TerrainType terrain, bool isInCity, bool isPlayer = false)
+        {
+            if (cell == null) return;
+            
+            if (isPlayer)
+            {
+                cell.text = showTileIds ? "-1" : "P";
+                // 玩家使用黄色
+                cell.style.color = Color.yellow;
+            }
+            else
+            {
+                cell.text = GetTerrainChar(terrain);
+                cell.style.color = GetTerrainColor(terrain, isInCity);
             }
         }
     }

@@ -31,7 +31,9 @@ MonoBehaviour:
   mountainThreshold: 0.6
   grassThreshold: 0.8
   grassChance: 0.3
-  cityCount: 5
+  minCityCount: 2
+  maxCityCount: 3
+  cityCount: 3
   citySize: 20
   riverCount: 1
   riverMinLength: 10

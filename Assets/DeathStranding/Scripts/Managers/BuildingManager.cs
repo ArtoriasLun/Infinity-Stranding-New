@@ -8,13 +8,13 @@ namespace ALUNGAMES
     public class BuildingManager : MonoBehaviour
     {
         // 建筑类型定义
-        [Serializable]
+        [System.Serializable]
         public class BuildingType
         {
             public string Name;
-            public List<string> RequiredPoints = new List<string>();
-            public List<string> OptionalPoints = new List<string>();
-            public List<string> RoomSizes = new List<string>();
+            public List<string> RequiredPoints;  // 必需的特殊点
+            public List<string> OptionalPoints;  // 可选的特殊点
+            public List<string> RoomSizes;       // 可用的房间大小
         }
 
         // 房间模板定义 - 确保与JS版本完全一致
@@ -155,7 +155,7 @@ namespace ALUNGAMES
             // 放置必要的特殊点
             foreach (string point in buildingType.RequiredPoints)
             {
-                PlaceSpecialPoint(layout, point);
+                PlaceSpecialPoint(building, layout, point);
             }
 
             // 放置可选特殊点（50%几率）
@@ -163,7 +163,7 @@ namespace ALUNGAMES
             {
                 if (Random.value < 0.5f)
                 {
-                    PlaceSpecialPoint(layout, point);
+                    PlaceSpecialPoint(building, layout, point);
                 }
             }
 
@@ -171,27 +171,85 @@ namespace ALUNGAMES
         }
 
         // 在布局中放置特殊点
-        private void PlaceSpecialPoint(string[,] layout, string pointType)
+        private void PlaceSpecialPoint(Building building, string[,] layout, string pointType)
         {
             List<Vector2Int> validPositions = new List<Vector2Int>();
-
-            // 查找所有有效位置（空地板块）
+            
+            // Find all valid positions (empty floor tiles)
             for (int y = 1; y < layout.GetLength(0) - 1; y++)
             {
                 for (int x = 1; x < layout.GetLength(1) - 1; x++)
                 {
                     if (layout[y, x] == ".")
                     {
-                        validPositions.Add(new Vector2Int(x, y));
+                        // For task points, prefer positions near walls or in corners
+                        if (pointType == "task")
+                        {
+                            bool nearWall = false;
+                            // Check adjacent tiles for walls
+                            for (int dy = -1; dy <= 1; dy++)
+                            {
+                                for (int dx = -1; dx <= 1; dx++)
+                                {
+                                    if (layout[y + dy, x + dx] == "#")
+                                    {
+                                        nearWall = true;
+                                        break;
+                                    }
+                                }
+                                if (nearWall) break;
+                            }
+                            
+                            if (nearWall)
+                            {
+                                // Higher priority for positions near walls
+                                validPositions.Insert(0, new Vector2Int(x, y));
+                            }
+                            else
+                            {
+                                validPositions.Add(new Vector2Int(x, y));
+                            }
+                        }
+                        else
+                        {
+                            validPositions.Add(new Vector2Int(x, y));
+                        }
                     }
                 }
             }
 
-            // 如果找到有效位置，放置特殊点
+            // If we found valid positions, place the point
             if (validPositions.Count > 0)
             {
-                Vector2Int pos = validPositions[Random.Range(0, validPositions.Count)];
-                layout[pos.y, pos.x] = specialPoints[pointType];
+                // For task points, prefer positions from the beginning of the list (near walls)
+                Vector2Int pos = validPositions[0];
+                string specialPointChar = GetSpecialPointChar(pointType);
+
+                // 获取ASCIIConfig并验证字符
+                ASCIIConfig asciiConfig = GameController.Instance.ASCIIRenderer.asciiConfig;
+                if (asciiConfig != null && !string.IsNullOrEmpty(specialPointChar))
+                {
+                    var tileConfigs = asciiConfig.GetTileConfigsByChar(specialPointChar[0]);
+                    if (tileConfigs != null && tileConfigs.Count > 0)
+                    {
+                        layout[pos.y, pos.x] = specialPointChar;
+                        
+                        // Store the special point location
+                        if (!building.SpecialPoints.ContainsKey(pointType))
+                        {
+                            building.SpecialPoints[pointType] = new List<Vector2Int>();
+                        }
+                        building.SpecialPoints[pointType].Add(pos);
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"No valid tile configuration found for special point character: {specialPointChar}");
+                    }
+                }
+                else
+                {
+                    Debug.LogError("ASCIIConfig not found or invalid special point character!");
+                }
             }
         }
 

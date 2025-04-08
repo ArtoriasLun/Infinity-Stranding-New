@@ -250,11 +250,12 @@ namespace ALUNGAMES
                     // 根据字符确定绘制到哪个Tilemap
                     TileBase tile = null;
                     
-                    // 检查玩家字符 '@'
-                    if (tileChar == '@')
+                    // 检查玩家字符 '@' 或 'P'
+                    if (tileChar == '@' || tileChar == 'P')
                     {
-                        // 玩家字符处理
-                        if (characterTiles.TryGetValue(tileChar, out tile))
+                        // 获取玩家Tile
+                        tile = GetPlayerTile();
+                        if (tile != null)
                         {
                             // 设置到角色层
                             // 注意Y轴坐标需要反转
@@ -460,72 +461,34 @@ namespace ALUNGAMES
                 return;
             }
             
-            // 加载地形Tiles
-            foreach (var terrain in asciiConfig.terrains)
+            // 遍历所有tiles
+            foreach (var tile in asciiConfig.tiles)
             {
-                if (terrain.sprite != null)
+                TileBase tileBase;
+                if (tile.sprite != null)
                 {
-                    terrainTiles[terrain.asciiChar] = CreateTileFromSprite(terrain.sprite);
+                    tileBase = CreateTileFromSprite(tile.sprite);
                 }
                 else
                 {
-                    // 为没有精灵的地形创建默认颜色Tile
-                    Color terrainColor = Color.green;
-                    if (terrain.asciiChar == '~') terrainColor = new Color(0, 0.7f, 1f); // 水
-                    else if (terrain.asciiChar == '^') terrainColor = new Color(0.7f, 0.7f, 0.7f); // 山
-                    
-                    terrainTiles[terrain.asciiChar] = CreateDefaultTile(terrainColor);
+                    // 创建默认颜色Tile
+                    tileBase = CreateDefaultTile(tile.color);
                 }
-            }
-            
-            // 加载城市和建筑Tiles
-            foreach (var city in asciiConfig.cities)
-            {
-                if (city.sprite != null)
+
+                // 根据tile的类型分配到不同的字典
+                if (tile.isWall || tile.isGate || tile.id == (int)TerrainType.Road || 
+                    tile.id == (int)TerrainType.Grass || tile.id == (int)TerrainType.Mountain || 
+                    tile.id == (int)TerrainType.Water)
                 {
-                    objectTiles[city.asciiChar] = CreateTileFromSprite(city.sprite);
+                    terrainTiles[tile.asciiChar] = tileBase;
                 }
-                else
+                else if (tile.id == -1) // 玩家
                 {
-                    objectTiles[city.asciiChar] = CreateDefaultTile(Color.white);
-                }
-            }
-            
-            foreach (var building in asciiConfig.buildings)
-            {
-                if (building.sprite != null)
-                {
-                    objectTiles[building.asciiChar] = CreateTileFromSprite(building.sprite);
+                    characterTiles[tile.asciiChar] = tileBase;
                 }
                 else
                 {
-                    objectTiles[building.asciiChar] = CreateDefaultTile(new Color(0.8f, 0.8f, 0.2f));
-                }
-            }
-            
-            // 加载物品Tiles
-            foreach (var item in asciiConfig.items)
-            {
-                if (item.sprite != null)
-                {
-                    objectTiles[item.asciiChar] = CreateTileFromSprite(item.sprite);
-                }
-                else
-                {
-                    objectTiles[item.asciiChar] = CreateDefaultTile(new Color(1f, 0.5f, 0f));
-                }
-            }
-            
-            // 加载角色Tiles
-            foreach (var character in asciiConfig.characters)
-            {
-                if (character.sprite != null)
-                {
-                    characterTiles[character.asciiChar] = CreateTileFromSprite(character.sprite);
-                }
-                else
-                {
-                    characterTiles[character.asciiChar] = CreateDefaultTile(Color.yellow);
+                    objectTiles[tile.asciiChar] = tileBase;
                 }
             }
             
@@ -660,20 +623,36 @@ namespace ALUNGAMES
         {
             switch (terrain)
             {
+                case TerrainType.Road:
+                    return ".";
                 case TerrainType.Grass:
                     return "*";
                 case TerrainType.Mountain:
                     return "^";
                 case TerrainType.Water:
                     return "~";
-                case TerrainType.Tree:
-                    return "t";  // 小树
-                case TerrainType.LargeTree:
-                    return "T";  // 大树
-                case TerrainType.Road:
-                    return ".";
-                case TerrainType.City:
+                case TerrainType.CityWall:
                     return "#";
+                case TerrainType.CityGate:
+                    return "|";
+                case TerrainType.TaskPoint:
+                    return "■";
+                case TerrainType.DeliveryPoint:
+                    return "□";
+                case TerrainType.RestPoint:
+                    return "+";
+                case TerrainType.Tree:
+                    return "t";
+                case TerrainType.LargeTree:
+                    return "T";
+                case TerrainType.Bar:
+                    return "B";
+                case TerrainType.Yard:
+                    return "Y";
+                case TerrainType.Hotel:
+                    return "H";
+                case TerrainType.Exchange:
+                    return "E";
                 default:
                     return " ";
             }

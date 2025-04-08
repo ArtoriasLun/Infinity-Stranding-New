@@ -12,83 +12,240 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebbeb2f692c39d040a203a6b7ed076be, type: 3}
   m_Name: ASCIIConfig
   m_EditorClassIdentifier: 
-  terrains:
-  - terrainName: Grass
-    asciiChar: 42
-    sprite: {fileID: 21300000, guid: 7992e74a3789fe342bb15e308fba35e4, type: 2}
-  - terrainName: Mountain
-    asciiChar: 94
-    sprite: {fileID: 21300000, guid: 67316d8e365571f48919b9146560877c, type: 2}
-  - terrainName: Water
-    asciiChar: 126
-    sprite: {fileID: 21300000, guid: 3868ff1753a4d2d4086c839acb9b4d84, type: 2}
-  - terrainName: Tree
-    asciiChar: 116
-    sprite: {fileID: 21300000, guid: 3c5ce62812a92f34881ac1334c5e083b, type: 2}
-  - terrainName: LargeTree
-    asciiChar: 84
-    sprite: {fileID: 21300000, guid: 9323014cf42b5914994c72fe44ef6c57, type: 2}
-  - terrainName: Road
+  tiles:
+  - id: 0
+    name: Empty
     asciiChar: 46
-    sprite: {fileID: 21300000, guid: f7181ef0f99e6aa499cba8971b6c8716, type: 2}
-  - terrainName: City
+    color: {r: 0.3283019, g: 0.3283019, b: 0.3283019, a: 1}
+    sprite: {fileID: 0}
+    isPassable: 1
+    moveResistance: 1
+    strainChance: 0
+    strainAmount: 0
+    isWall: 0
+    isGate: 0
+    isSpecialPoint: 0
+  - id: 1
+    name: Road
+    asciiChar: 46
+    color: {r: 0.32941177, g: 0.32941177, b: 0.32941177, a: 1}
+    sprite: {fileID: 0}
+    isPassable: 1
+    moveResistance: 1
+    strainChance: 0
+    strainAmount: 0
+    isWall: 0
+    isGate: 0
+    isSpecialPoint: 0
+  - id: 2
+    name: Grass
+    asciiChar: 42
+    color: {r: 1, g: 1, b: 1, a: 1}
+    sprite: {fileID: 0}
+    isPassable: 1
+    moveResistance: 1
+    strainChance: 0
+    strainAmount: 0
+    isWall: 0
+    isGate: 0
+    isSpecialPoint: 0
+  - id: 3
+    name: Mountain
+    asciiChar: 94
+    color: {r: 1, g: 1, b: 1, a: 1}
+    sprite: {fileID: 0}
+    isPassable: 1
+    moveResistance: 3
+    strainChance: 0.3
+    strainAmount: 10
+    isWall: 0
+    isGate: 0
+    isSpecialPoint: 0
+  - id: 4
+    name: Water
+    asciiChar: 126
+    color: {r: 1, g: 1, b: 1, a: 1}
+    sprite: {fileID: 0}
+    isPassable: 1
+    moveResistance: 2
+    strainChance: 0.5
+    strainAmount: 10
+    isWall: 0
+    isGate: 0
+    isSpecialPoint: 0
+  - id: 5
+    name: City Wall
     asciiChar: 35
-    sprite: {fileID: 21300000, guid: 3fd4de8bc9594c9448d3eb14afa61173, type: 2}
-  cities:
-  - cityName: City_1
-    asciiChar: 945
-    sprite: {fileID: 21300000, guid: b4826aed38099da40b0744f456a4d58e, type: 2}
-  - cityName: City_2
-    asciiChar: 946
-    sprite: {fileID: 21300000, guid: 9b062fc21deaf0d4c947b5791ad3424b, type: 2}
-  - cityName: City_3
-    asciiChar: 947
-    sprite: {fileID: 21300000, guid: 10e5e26169d84d444b8c10d2ae0f21df, type: 2}
-  - cityName: City_4
-    asciiChar: 948
-    sprite: {fileID: 21300000, guid: dd2e0a57df56da14085df8cc19ebf623, type: 2}
-  - cityName: City_5
-    asciiChar: 949
-    sprite: {fileID: 21300000, guid: e150cbc62dea169408b371745c6a5799, type: 2}
-  - cityName: City_6
-    asciiChar: 950
-    sprite: {fileID: 21300000, guid: 470bc8c7b91819e4eb2ec40c6e180b2c, type: 2}
-  - cityName: City_7
-    asciiChar: 951
-    sprite: {fileID: 21300000, guid: 6f64cc7f6d38a7c4c9932147c0acc4a5, type: 2}
-  - cityName: City_8
-    asciiChar: 952
-    sprite: {fileID: 21300000, guid: 7781507cc4961d44f838f2dcdc976057, type: 2}
-  - cityName: City_9
-    asciiChar: 953
-    sprite: {fileID: 21300000, guid: 72091c899ff476d4d901f92491f4628b, type: 2}
-  - cityName: City_10
-    asciiChar: 954
-    sprite: {fileID: 21300000, guid: a358580e56307b24f808c22076660c6e, type: 2}
-  buildings:
-  - buildingName: Bar
-    asciiChar: 66
-    sprite: {fileID: 21300000, guid: eb9f62cb6734c46409a058d98636423d, type: 2}
-  - buildingName: Yard
-    asciiChar: 89
-    sprite: {fileID: 21300000, guid: eb0b2b5dada396e40a355f33a48e8838, type: 2}
-  - buildingName: Hotel
-    asciiChar: 72
-    sprite: {fileID: 21300000, guid: 99e1b33ba8fa3cd45a96bce71853d827, type: 2}
-  - buildingName: Exchange
-    asciiChar: 69
-    sprite: {fileID: 21300000, guid: a25c327526ec6064b83cf305c6430c57, type: 2}
-  characters:
-  - characterName: Player
-    asciiChar: 64
-    sprite: {fileID: 21300000, guid: 55ad5729b9a5eef4aa477b22ba3d644c, type: 2}
-  items:
-  - itemName: Task
+    color: {r: 1, g: 1, b: 1, a: 1}
+    sprite: {fileID: 0}
+    isPassable: 0
+    moveResistance: 0
+    strainChance: 0
+    strainAmount: 0
+    isWall: 1
+    isGate: 0
+    isSpecialPoint: 0
+  - id: 6
+    name: City Gate
+    asciiChar: 124
+    color: {r: 1, g: 1, b: 1, a: 1}
+    sprite: {fileID: 0}
+    isPassable: 1
+    moveResistance: 1
+    strainChance: 0
+    strainAmount: 0
+    isWall: 0
+    isGate: 1
+    isSpecialPoint: 0
+  - id: 7
+    name: Building Wall
+    asciiChar: 35
+    color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    sprite: {fileID: 0}
+    isPassable: 0
+    moveResistance: 0
+    strainChance: 0
+    strainAmount: 0
+    isWall: 1
+    isGate: 0
+    isSpecialPoint: 0
+  - id: 8
+    name: Building Gate
+    asciiChar: 124
+    color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    sprite: {fileID: 0}
+    isPassable: 1
+    moveResistance: 1
+    strainChance: 0
+    strainAmount: 0
+    isWall: 0
+    isGate: 1
+    isSpecialPoint: 0
+  - id: 9
+    name: Task Point
     asciiChar: 9632
-    sprite: {fileID: 21300000, guid: e228d91faf0db8f49ba0dfb6f96bb273, type: 2}
-  - itemName: Delivery
+    color: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+    sprite: {fileID: 0}
+    isPassable: 1
+    moveResistance: 1
+    strainChance: 0
+    strainAmount: 0
+    isWall: 0
+    isGate: 0
+    isSpecialPoint: 1
+  - id: 10
+    name: Delivery Point
     asciiChar: 9633
-    sprite: {fileID: 21300000, guid: 2a2a052ff4003454990793c60584f2e1, type: 2}
-  - itemName: Rest
+    color: {r: 0, g: 1, b: 0, a: 1}
+    sprite: {fileID: 0}
+    isPassable: 1
+    moveResistance: 1
+    strainChance: 0
+    strainAmount: 0
+    isWall: 0
+    isGate: 0
+    isSpecialPoint: 1
+  - id: 11
+    name: Rest Point
     asciiChar: 43
-    sprite: {fileID: 21300000, guid: b2473444d7950ef4c861c74b0e3052aa, type: 2}
+    color: {r: 0, g: 1, b: 1, a: 1}
+    sprite: {fileID: 0}
+    isPassable: 1
+    moveResistance: 1
+    strainChance: 0
+    strainAmount: 0
+    isWall: 0
+    isGate: 0
+    isSpecialPoint: 1
+  - id: 12
+    name: Tree
+    asciiChar: 116
+    color: {r: 1, g: 1, b: 1, a: 1}
+    sprite: {fileID: 0}
+    isPassable: 0
+    moveResistance: 0
+    strainChance: 0
+    strainAmount: 0
+    isWall: 0
+    isGate: 0
+    isSpecialPoint: 0
+  - id: 13
+    name: Large Tree
+    asciiChar: 84
+    color: {r: 1, g: 1, b: 1, a: 1}
+    sprite: {fileID: 0}
+    isPassable: 0
+    moveResistance: 0
+    strainChance: 0
+    strainAmount: 0
+    isWall: 0
+    isGate: 0
+    isSpecialPoint: 0
+  - id: 14
+    name: Bar
+    asciiChar: 66
+    color: {r: 1, g: 1, b: 1, a: 1}
+    sprite: {fileID: 0}
+    isPassable: 0
+    moveResistance: 0
+    strainChance: 0
+    strainAmount: 0
+    isWall: 0
+    isGate: 0
+    isSpecialPoint: 0
+  - id: 15
+    name: Yard
+    asciiChar: 89
+    color: {r: 1, g: 1, b: 1, a: 1}
+    sprite: {fileID: 0}
+    isPassable: 0
+    moveResistance: 0
+    strainChance: 0
+    strainAmount: 0
+    isWall: 0
+    isGate: 0
+    isSpecialPoint: 0
+  - id: 16
+    name: Hotel
+    asciiChar: 72
+    color: {r: 1, g: 1, b: 1, a: 1}
+    sprite: {fileID: 0}
+    isPassable: 0
+    moveResistance: 0
+    strainChance: 0
+    strainAmount: 0
+    isWall: 0
+    isGate: 0
+    isSpecialPoint: 0
+  - id: 17
+    name: Exchange
+    asciiChar: 69
+    color: {r: 1, g: 1, b: 1, a: 1}
+    sprite: {fileID: 0}
+    isPassable: 0
+    moveResistance: 0
+    strainChance: 0
+    strainAmount: 0
+    isWall: 0
+    isGate: 0
+    isSpecialPoint: 0
+  - id: -1
+    name: Player
+    asciiChar: 80
+    color: {r: 1, g: 1, b: 1, a: 1}
+    sprite: {fileID: 0}
+    isPassable: 1
+    moveResistance: 0
+    strainChance: 0
+    strainAmount: 0
+    isWall: 0
+    isGate: 0
+    isSpecialPoint: 0
+  maxCargo: 100
+  maxStrain: 100
+  bitcoinReward: 10
+  mountainStrainChance: 0.3
+  mountainStrainAmount: 10
+  waterStrainAmount: 10
+  mountainMoveResistance: 3
+  waterMoveResistance: 2
