@@ -24,7 +24,8 @@ namespace ALUNGAMES
         Bar,            // 酒吧 'B'
         Yard,           // 仓库 'Y'
         Hotel,          // 旅馆 'H'
-        Exchange        // 交易所 'E'
+        Exchange,
+        Player = -1        // 交易所 'E'
     }
 
     // 方向枚举
@@ -99,4 +100,4 @@ namespace ALUNGAMES
             Reward = reward;
         }
     }
-} 
+}

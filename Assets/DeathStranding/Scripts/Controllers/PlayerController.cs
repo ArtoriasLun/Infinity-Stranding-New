@@ -201,6 +201,7 @@ namespace ALUNGAMES
             // 处理城市内的行动
             if (cityManager.IsCityChunk(currentWorldX, currentWorldY))
             {
+                Debug.Log("is city action");
                 if (cityManager.HandleCityAction(playerPosition, terrain, currentWorldX, currentWorldY, 
                                                ref tasks, ref carriedCargo, ref bitcoin, ref strain))
                 {

@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
+using System;
 
 [CreateAssetMenu(fileName = "ASCIIConfig", menuName = "😊/ASCIIConfig")]
 public class ASCIIConfig : ScriptableObject
@@ -36,7 +38,6 @@ public class ASCIIConfig : ScriptableObject
     // 快速查找表
     private Dictionary<int, TileConfig> tileConfigsById;
     private Dictionary<char, List<TileConfig>> tileConfigsByChar;
-
     private void OnEnable()
     {
         InitializeLookupTables();
@@ -69,9 +70,24 @@ public class ASCIIConfig : ScriptableObject
     }
 
     // 根据字符获取所有可能的配置
-    public List<TileConfig> GetTileConfigsByChar(char c)
+    public List<TileConfig> GetTileConfigsByChar(char c, string key)
     {
-        return tileConfigsByChar.TryGetValue(c, out var configs) ? configs : new List<TileConfig>();
+        // 获取原始结果列表
+        List<TileConfig> originalResult = tileConfigsByChar.TryGetValue(c, out var configs)
+            ? configs : new List<TileConfig>();
+
+        if (!string.IsNullOrEmpty(key))
+        {
+            // 创建过滤后的副本
+            var filtered = originalResult
+                .Where(t => t.name.IndexOf(key, StringComparison.OrdinalIgnoreCase) >= 0)
+                .ToList();
+
+            // 回退机制：仅当过滤后有结果时返回
+            return filtered.Count > 0 ? filtered : originalResult;
+        }
+
+        return originalResult;
     }
 
     // 将所有颜色设置为白色
@@ -83,7 +99,7 @@ public class ASCIIConfig : ScriptableObject
             config.color = Color.white;
             tiles[i] = config;
         }
-        
+
         // 重新初始化查找表
         InitializeLookupTables();
     }

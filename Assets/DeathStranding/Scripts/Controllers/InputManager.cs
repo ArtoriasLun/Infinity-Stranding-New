@@ -13,7 +13,7 @@ namespace ALUNGAMES
         private InputAction interactAction;
         private InputAction statusAction;
         float mt;
-        
+
         // 移动模式相关变量
         [SerializeField] private bool isHoldMode = false; // 默认为点击模式
         [SerializeField] private float clickModeDelay = 0.3f; // 点击模式的移动延迟
@@ -91,7 +91,7 @@ namespace ALUNGAMES
         {
             // 获取移动输入值
             moveInput = context.ReadValue<Vector2>();
-            
+
             // 检测按键按下或释放
             if (context.performed && moveInput.sqrMagnitude > 0.1f)
             {
@@ -99,7 +99,7 @@ namespace ALUNGAMES
                 isMoving = true;
                 holdModeTimer = 0f; // 重置长按计时器
                 mt = clickModeDelay; // 设置为点击模式延迟
-                
+
                 // 在点击模式下立即执行一次移动
                 if (!isHoldMode)
                 {
@@ -116,8 +116,10 @@ namespace ALUNGAMES
 
         private void OnInteractInput(InputAction.CallbackContext context)
         {
+            Debug.Log("interact input: " + context.performed.ToString());
             if (context.performed)
             {
+                Debug.Log("interact input succfull: " + context.performed.ToString());
                 // 执行交互操作，通过GameController.Instance获取PlayerController
                 GameController.Instance.PlayerController.PerformAction();
             }
@@ -141,7 +143,7 @@ namespace ALUNGAMES
         {
             // 如果没有按下移动键，直接返回
             if (!isMoving) return;
-            
+
             // 处理长按检测
             if (isMoving && !isHoldMode)
             {
@@ -153,14 +155,14 @@ namespace ALUNGAMES
                     mt = 0; // 立即允许移动
                 }
             }
-            
+
             // 移动冷却处理
-            if (mt > 0) 
-            { 
-                mt -= Time.deltaTime; 
-                return; 
+            if (mt > 0)
+            {
+                mt -= Time.deltaTime;
+                return;
             }
-            
+
             // 处理移动
             if (moveInput.sqrMagnitude > 0.1f)
             {
@@ -169,7 +171,7 @@ namespace ALUNGAMES
                 ProcessMovementDirection();
             }
         }
-        
+
         private void ProcessMovementDirection()
         {
             // 8向移动处理

@@ -112,8 +112,12 @@ namespace ALUNGAMES
             AddIntField(configSection, "minCityCount", "最小城市数量", gameConfig.minCityCount);
             AddIntField(configSection, "maxCityCount", "最大城市数量", gameConfig.maxCityCount);
             AddIntField(configSection, "cityCount", "城市数量", gameConfig.cityCount);
+            AddIntField(configSection, "citySize", "城市尺寸", gameConfig.citySize);
 
             // 地形生成配置
+            AddFloatField(configSection, "minElevation", "最低海拔(米)", gameConfig.minElevation);
+            AddFloatField(configSection, "maxElevation", "最高海拔(米)", gameConfig.maxElevation);
+            AddFloatField(configSection, "elevationCurve", "高度曲线系数", gameConfig.elevationCurve);
             AddFloatField(configSection, "mountainThreshold", "山脉生成阈值", gameConfig.mountainThreshold);
             AddFloatField(configSection, "grassThreshold", "草地生成阈值", gameConfig.grassThreshold);
             AddFloatField(configSection, "grassChance", "草地生成概率", gameConfig.grassChance);
@@ -239,6 +243,7 @@ namespace ALUNGAMES
             gameConfig.minCityCount = Mathf.Clamp(((IntegerField)configFields["minCityCount"]).value, 2, 10);
             gameConfig.maxCityCount = Mathf.Clamp(((IntegerField)configFields["maxCityCount"]).value, gameConfig.minCityCount, 10);
             gameConfig.cityCount = Mathf.Clamp(((IntegerField)configFields["cityCount"]).value, gameConfig.minCityCount, gameConfig.maxCityCount);
+            gameConfig.citySize = ((IntegerField)configFields["citySize"]).value;
 
             // 地形生成配置
             gameConfig.mountainThreshold = ((FloatField)configFields["mountainThreshold"]).value;

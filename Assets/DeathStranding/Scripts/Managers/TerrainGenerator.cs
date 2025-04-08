@@ -1,5 +1,6 @@
 using UnityEngine;
 using Random = UnityEngine.Random;
+using System.Collections.Generic;
 
 namespace ALUNGAMES
 {
@@ -8,6 +9,18 @@ namespace ALUNGAMES
         private TerrainType[,] terrain;
         private int mapWidth;
         private int mapHeight;
+        
+        // 新增地形管线组件
+        private HeightMapGenerator heightGenerator;
+        private HydraulicErosion erosionProcessor;
+        private BiomeDistributor biomeDistributor;
+
+        private void Awake()
+        {
+            heightGenerator = new HeightMapGenerator();
+            erosionProcessor = new HydraulicErosion();
+            biomeDistributor = new BiomeDistributor();
+        }
 
         // 生成地形
         public TerrainType[,] GenerateTerrain(int mapWidth, int mapHeight, int currentWorldX, int currentWorldY)
@@ -37,14 +50,43 @@ namespace ALUNGAMES
                     gameConfig = ScriptableObject.CreateInstance<DeathStrandingConfig>();
                 }
                 
+                // 如果是默认种子值(100f)，则生成随机种子
+                if (Mathf.Approximately(gameConfig.worldSeed, 100f))
+                {
+                    gameConfig.worldSeed = Random.Range(0f, 10000f);
+                    Debug.Log($"生成随机世界种子: {gameConfig.worldSeed}");
+                }
+                
                 if (cityManager == null)
                 {
                     Debug.LogWarning("TerrainGenerator: cityManager为null，将不生成城市");
                 }
                 
-                // 初始化噪声生成
-                float seed = Random.Range(0f, 1000f);
-                float[,] heightMap = GenerateHeightMap(seed);
+                // 初始化地形管线
+                heightGenerator.Initialize(mapWidth, mapHeight, gameConfig, currentWorldX, currentWorldY);
+                float[,] heightMap = heightGenerator.Generate();
+                erosionProcessor.Erode(heightMap, gameConfig);
+
+                // 归一化高度图到0-1范围
+                float minHeight = float.MaxValue;
+                float maxHeight = float.MinValue;
+                for (int y = 0; y < mapHeight; y++)
+                {
+                    for (int x = 0; x < mapWidth; x++)
+                    {
+                        minHeight = Mathf.Min(minHeight, heightMap[y, x]);
+                        maxHeight = Mathf.Max(maxHeight, heightMap[y, x]);
+                    }
+                }
+                float range = maxHeight - minHeight;
+                for (int y = 0; y < mapHeight; y++)
+                {
+                    for (int x = 0; x < mapWidth; x++)
+                    {
+                        heightMap[y, x] = (heightMap[y, x] - minHeight) / range;
+                    }
+                }
+                Debug.Log($"归一化后高度图范围: {minHeight}-{maxHeight}");
                 
                 // 初始化为空地
                 for (int y = 0; y < mapHeight; y++)
@@ -107,22 +149,72 @@ namespace ALUNGAMES
             }
         }
         
-        // 生成高度图
-        private float[,] GenerateHeightMap(float seed)
+        // 新增地形管线类
+        private class HeightMapGenerator 
         {
-            float[,] heightMap = new float[mapHeight, mapWidth];
+            private int width;
+            private int height;
+            private DeathStrandingConfig config;
             
-            for (int y = 0; y < mapHeight; y++)
+            private int worldX;
+            private int worldY;
+            
+            public void Initialize(int width, int height, DeathStrandingConfig config, int worldX = 0, int worldY = 0) 
             {
-                for (int x = 0; x < mapWidth; x++)
-                {
-                    float xCoord = x / 10f;
-                    float yCoord = y / 10f;
-                    heightMap[y, x] = SmoothNoise(xCoord, yCoord, seed);
-                }
+                this.width = width;
+                this.height = height;
+                this.config = config;
+                this.worldX = worldX;
+                this.worldY = worldY;
             }
             
-            return heightMap;
+            public float[,] Generate() 
+            {
+                float[,] heightMap = new float[height, width];
+                float seed = config.worldSeed;
+                
+                // 使用世界坐标生成连续噪声
+                float worldScale = 0.1f;
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        float worldPixelX = (worldX * width + x) * worldScale;
+                        float worldPixelY = (worldY * height + y) * worldScale;
+                        heightMap[y, x] = Mathf.PerlinNoise(worldPixelX + seed, worldPixelY + seed);
+                    }
+                }
+                return heightMap;
+            }
+        }
+        
+        private class HydraulicErosion
+        {
+            public void Erode(float[,] heightMap, DeathStrandingConfig config) 
+            {
+                // 暂为占位实现
+                Debug.Log("Hydraulic erosion processing (placeholder)");
+            }
+        }
+        
+        private class BiomeDistributor
+        {
+            public TerrainType[,] Distribute(float[,] heightMap, DeathStrandingConfig config) 
+            {
+                int height = heightMap.GetLength(0);
+                int width = heightMap.GetLength(1);
+                TerrainType[,] biomeMap = new TerrainType[height, width];
+                
+                // 临时实现 - 后续将根据海拔和温湿度重写
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        biomeMap[y, x] = TerrainType.Road;
+                    }
+                }
+                return biomeMap;
+            }
         }
         
         // 生成山脉和草地
@@ -174,8 +266,8 @@ namespace ALUNGAMES
                     }
                     else if (heightMap[y, x] > gameConfig.grassThreshold)
                     {
-                        // 10%的概率生成草地
-                        terrain[y, x] = Random.value < 0.1f ? TerrainType.Grass : TerrainType.Road;
+                        // 30%的概率生成草地
+                        terrain[y, x] = Random.value < gameConfig.grassChance ? TerrainType.Grass : TerrainType.Road;
                     }
                 }
             }
@@ -403,4 +495,4 @@ namespace ALUNGAMES
             return Mathf.Sin(n * 12.9898f) * 43758.5453f % 1;
         }
     }
-} 
+}

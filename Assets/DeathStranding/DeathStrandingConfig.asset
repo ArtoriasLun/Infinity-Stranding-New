@@ -12,13 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3850929f4c43794188c59297abfed68, type: 3}
   m_Name: DeathStrandingConfig
   m_EditorClassIdentifier: 
+  worldSeed: 100
   maxCargo: 3
   maxStrain: 100
   moveSpeed: 1
   terrain:
     river:
       strainChance: 1
-      strainAmount: 10
+      strainAmount: 3
       moveResistance: 2
     mountain:
       strainChance: 0.3
@@ -28,8 +29,11 @@ MonoBehaviour:
   mapHeight: 30
   worldWidth: 10
   worldHeight: 10
+  minElevation: 0
+  maxElevation: 2000
+  elevationCurve: 1
   mountainThreshold: 0.6
-  grassThreshold: 0.8
+  grassThreshold: 0.1
   grassChance: 0.3
   minCityCount: 2
   maxCityCount: 3

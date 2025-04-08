@@ -229,7 +229,7 @@ namespace ALUNGAMES
                 ASCIIConfig asciiConfig = GameController.Instance.ASCIIRenderer.asciiConfig;
                 if (asciiConfig != null && !string.IsNullOrEmpty(specialPointChar))
                 {
-                    var tileConfigs = asciiConfig.GetTileConfigsByChar(specialPointChar[0]);
+                    var tileConfigs = asciiConfig.GetTileConfigsByChar(specialPointChar[0],"");
                     if (tileConfigs != null && tileConfigs.Count > 0)
                     {
                         layout[pos.y, pos.x] = specialPointChar;

@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -9,15 +11,14 @@ namespace ALUNGAMES
         [SerializeField] private UIDocument uiDocument;
         public ASCIIConfig asciiConfig;
         [SerializeField] private bool showTileIds = false; // 调试开关：显示tile的ID
-        
+
         private VisualElement root;
         private VisualElement gameMap;
         private VisualElement worldMap;
-        
+
         // 地图元素引用
         private Label[,] mapElements;
-        private Dictionary<TerrainType, ASCIIConfig.TileConfig> terrainConfigs;
-        
+
         private void Awake()
         {
             // 加载配置
@@ -25,26 +26,26 @@ namespace ALUNGAMES
             {
                 asciiConfig = Resources.Load<ASCIIConfig>("ASCIIConfig");
             }
-            
+
             // 初始化地形配置字典
-            terrainConfigs = new Dictionary<TerrainType, ASCIIConfig.TileConfig>();
-            foreach (var config in asciiConfig.tiles)
-            {
-                if (config.id >= 0 && config.id < System.Enum.GetValues(typeof(TerrainType)).Length)
-                {
-                    terrainConfigs[(TerrainType)config.id] = config;
-                }
-            }
+            // terrainConfigs = new Dictionary<TerrainType, ASCIIConfig.TileConfig>();
+            // foreach (var config in asciiConfig.tiles)
+            // {
+            //     if (config.id >= 0 && config.id < System.Enum.GetValues(typeof(TerrainType)).Length)
+            //     {
+            //         terrainConfigs[(TerrainType)config.id] = config;
+            //     }
+            // }
         }
-        
+
         private void OnEnable()
         {
             Initialize();
-            
+
             // 订阅区块变化事件 - 这时才重建地图
             GameController.Instance.PlayerController.OnPlayerChangedChunk += UpdateWorldAndMaps;
         }
-        
+
         private void OnDisable()
         {
             // 取消订阅事件
@@ -53,23 +54,23 @@ namespace ALUNGAMES
                 GameController.Instance.PlayerController.OnPlayerChangedChunk -= UpdateWorldAndMaps;
             }
         }
-        
+
         // 初始化
         public void Initialize()
         {
             if (uiDocument == null) return;
-            
+
             root = uiDocument.rootVisualElement;
-            
+
             // 获取地图元素
             gameMap = root.Q<VisualElement>("game-map");
             worldMap = root.Q<VisualElement>("world-map");
-            
+
             // 初始渲染
             RenderMap();
             RenderWorldMap();
         }
-        
+
         // 重量级更新 - 在区块变化时重建地图
         public void UpdateWorldAndMaps(int newX, int newY)
         {
@@ -77,26 +78,27 @@ namespace ALUNGAMES
             RenderMap();
             RenderWorldMap();
         }
-        
+
         // 只更新玩家位置标记，不重新生成整个地图
         public void UpdatePlayerPositionOnMap()
         {
             var playerController = GameController.Instance.PlayerController;
             if (playerController == null || mapElements == null)
                 return;
-            
-            try {
+
+            try
+            {
                 TerrainType[,] terrain = GameController.Instance.GetCurrentTerrain();
                 if (terrain == null)
                     return;
-                
+
                 int terrainSizeY = terrain.GetLength(0);
                 int terrainSizeX = terrain.GetLength(1);
-                
+
                 bool isInCity = GameController.Instance.CityManager.IsCityChunk(
                     GameController.Instance.CurrentWorldX,
                     GameController.Instance.CurrentWorldY);
-                
+
                 // 先重置所有单元格为原始地形显示
                 for (int y = 0; y < terrainSizeY; y++)
                 {
@@ -108,11 +110,11 @@ namespace ALUNGAMES
                         }
                     }
                 }
-                
+
                 // 标记玩家位置
                 int playerX = playerController.PlayerPosition.x;
                 int playerY = playerController.PlayerPosition.y;
-                
+
                 // 边界检查
                 if (playerX >= 0 && playerX < terrainSizeX && playerY >= 0 && playerY < terrainSizeY)
                 {
@@ -127,7 +129,7 @@ namespace ALUNGAMES
                 Debug.LogError($"更新玩家位置标记时出错: {e.Message}");
             }
         }
-        
+
         // 渲染游戏地图
         public void RenderMap()
         {
@@ -139,10 +141,10 @@ namespace ALUNGAMES
                     Debug.LogError("RenderMap: gameMap为null");
                     return;
                 }
-            
+
                 // 清空地图
                 gameMap.Clear();
-                
+
                 // 获取当前地形
                 TerrainType[,] terrain = GameController.Instance.GetCurrentTerrain();
                 if (terrain == null)
@@ -150,33 +152,33 @@ namespace ALUNGAMES
                     Debug.LogError("RenderMap: 地形为null");
                     return;
                 }
-                
+
                 // 获取实际地形大小
                 int terrainSizeY = terrain.GetLength(0);
                 int terrainSizeX = terrain.GetLength(1);
-                
+
                 // 确保地形尺寸有效
                 if (terrainSizeY <= 0 || terrainSizeX <= 0)
                 {
                     Debug.LogError($"RenderMap: 无效的地形尺寸: {terrainSizeY}x{terrainSizeX}");
                     return;
                 }
-                
+
                 // 调整mapElements数组大小
                 mapElements = new Label[terrainSizeY, terrainSizeX];
-                
+
                 // 检查是否在城市中
                 bool isInCity = GameController.Instance.CityManager.IsCityChunk(
                     GameController.Instance.CurrentWorldX,
                     GameController.Instance.CurrentWorldY);
-                
+
                 // 创建行容器
                 for (int y = 0; y < terrainSizeY; y++)
                 {
                     var row = new VisualElement();
                     row.style.flexDirection = FlexDirection.Row;
                     row.style.height = 15; // 行高固定
-                    
+
                     for (int x = 0; x < terrainSizeX; x++)
                     {
                         var cell = new Label();
@@ -184,25 +186,25 @@ namespace ALUNGAMES
                         cell.style.height = 15;
                         cell.style.unityTextAlign = TextAnchor.MiddleCenter;
                         cell.style.fontSize = 14;
-                        
+
                         // 使用新的渲染方法
                         RenderCell(cell, terrain[y, x], isInCity);
-                        
+
                         // 存储引用
                         mapElements[y, x] = cell;
                         row.Add(cell);
                     }
-                    
+
                     gameMap.Add(row);
                 }
-                
+
                 // 如果有玩家，标记玩家位置
                 var playerController = GameController.Instance.PlayerController;
                 if (playerController != null)
                 {
                     int playerX = playerController.PlayerPosition.x;
                     int playerY = playerController.PlayerPosition.y;
-                    
+
                     // 边界检查
                     if (playerX >= 0 && playerX < terrainSizeX && playerY >= 0 && playerY < terrainSizeY)
                     {
@@ -218,7 +220,7 @@ namespace ALUNGAMES
                 Debug.LogError($"渲染地图时发生错误: {e.Message}\n{e.StackTrace}");
             }
         }
-        
+
         // 渲染世界地图
         public void RenderWorldMap()
         {
@@ -230,30 +232,30 @@ namespace ALUNGAMES
                     Debug.LogError("RenderWorldMap: worldMap为null");
                     return;
                 }
-                
+
                 // 清空世界地图
                 worldMap.Clear();
-                
+
                 // 通过GameController获取依赖
                 var playerController = GameController.Instance.PlayerController;
                 var cityManager = GameController.Instance.CityManager;
                 var gameConfig = GameController.Instance.GameConfig;
-                
+
                 // 检查依赖组件
                 if (playerController == null || cityManager == null)
                 {
                     Debug.LogError("RenderWorldMap: playerController或cityManager为null");
                     return;
                 }
-                
+
                 // 从gameConfig获取世界尺寸，如果不可用则使用默认值
                 int worldWidth = gameConfig != null ? gameConfig.worldWidth : 10;
                 int worldHeight = gameConfig != null ? gameConfig.worldHeight : 10;
-                
+
                 // 获取玩家当前的世界位置
                 int playerWorldX = playerController.GetCurrentWorldX();
                 int playerWorldY = playerController.GetCurrentWorldY();
-                
+
                 try
                 {
                     // 创建世界地图行
@@ -262,7 +264,7 @@ namespace ALUNGAMES
                         var row = new VisualElement();
                         row.style.flexDirection = FlexDirection.Row;
                         row.style.height = 20; // 行高
-                        
+
                         for (int x = 0; x < worldWidth; x++)
                         {
                             var cell = new Label();
@@ -270,11 +272,11 @@ namespace ALUNGAMES
                             cell.style.height = 20;
                             cell.style.unityTextAlign = TextAnchor.MiddleCenter;
                             cell.style.fontSize = 14;
-                            
+
                             // 默认显示为空格
                             cell.text = " ";
                             cell.style.color = new Color(0.5f, 0.5f, 0.5f);
-                            
+
                             // 标记城市
                             bool isCity = false;
                             if (cityManager != null)
@@ -304,7 +306,7 @@ namespace ALUNGAMES
                                     }
                                 }
                             }
-                            
+
                             // 标记玩家位置
                             if (x == playerWorldX && y == playerWorldY)
                             {
@@ -312,10 +314,10 @@ namespace ALUNGAMES
                                 cell.style.color = Color.yellow;
                                 cell.style.unityFontStyleAndWeight = FontStyle.Bold;
                             }
-                            
+
                             row.Add(cell);
                         }
-                        
+
                         worldMap.Add(row);
                     }
                 }
@@ -329,85 +331,35 @@ namespace ALUNGAMES
                 Debug.LogError($"渲染世界地图时发生错误: {e.Message}\n{e.StackTrace}");
             }
         }
-        
+
         // 获取地形对应字符
         private string GetTerrainChar(TerrainType terrain)
         {
             if (showTileIds)
-            {
-                return ((int)terrain).ToString();
-            }
-
-            if (terrainConfigs.TryGetValue(terrain, out var config))
-            {
-                return config.asciiChar.ToString();
-            }
-            
-            // 默认字符
-            switch (terrain)
-            {
-                case TerrainType.Empty:
-                    return " ";
-                case TerrainType.Road:
-                    return ".";
-                case TerrainType.Grass:
-                    return "*";
-                case TerrainType.Mountain:
-                    return "^";
-                case TerrainType.Water:
-                    return "~";
-                case TerrainType.CityWall:
-                case TerrainType.BuildingWall:
-                    return "#";
-                case TerrainType.CityGate:
-                case TerrainType.BuildingGate:
-                    return "|";
-                case TerrainType.TaskPoint:
-                    return "■";
-                case TerrainType.DeliveryPoint:
-                    return "□";
-                case TerrainType.RestPoint:
-                    return "+";
-                case TerrainType.Tree:
-                    return "t";
-                case TerrainType.LargeTree:
-                    return "T";
-                case TerrainType.Bar:
-                    return "B";
-                case TerrainType.Yard:
-                    return "Y";
-                case TerrainType.Hotel:
-                    return "H";
-                case TerrainType.Exchange:
-                    return "E";
-                default:
-                    return "?";
-            }
+                return GetTileConfig((int)terrain).id.ToString();
+            else
+                return GetTileConfig((int)terrain).asciiChar.ToString();
         }
 
         // 获取地形颜色
         private Color GetTerrainColor(TerrainType terrain, bool isInCity)
         {
-            // 优先从配置中获取颜色
-            if (terrainConfigs.TryGetValue(terrain, out var config))
-            {
-                return config.color;
-            }
-            
-            // 如果配置中没有找到，返回默认白色
-            return Color.white;
+            return GetTileConfig((int)terrain).color;
         }
-
+        ASCIIConfig.TileConfig GetTileConfig(int id)
+        {
+            return asciiConfig.GetTileConfig(id);
+        }
         // 更新渲染单元格的方法
         private void RenderCell(Label cell, TerrainType terrain, bool isInCity, bool isPlayer = false)
         {
             if (cell == null) return;
-            
+
             if (isPlayer)
             {
-                cell.text = showTileIds ? "-1" : "P";
+                cell.text = GetTileConfig(-1).asciiChar.ToString();
                 // 玩家使用黄色
-                cell.style.color = Color.yellow;
+                cell.style.color = GetTileConfig(-1).color;
             }
             else
             {
@@ -416,4 +368,4 @@ namespace ALUNGAMES
             }
         }
     }
-} 
+}

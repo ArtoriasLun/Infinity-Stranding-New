@@ -9,10 +9,8 @@ namespace ALUNGAMES
         private List<City> cities = new List<City>();
         private Dictionary<string, string> citySymbols = new Dictionary<string, string>();
         private readonly string[] citySymbolPool = { "α", "β", "γ", "δ", "ε", "ζ", "η", "θ", "ι", "κ" };
-        
+
         // 城市生成参数
-        private const int MIN_CITY_SIZE = 20;
-        private const int MAX_CITY_SIZE = 30;
         private const float CITY_SPACING = 40f;
 
         // 多种城市布局模板
@@ -131,18 +129,18 @@ namespace ALUNGAMES
             // 首先在左上角 (0,0) 生成第一个城市（α城市）
             string firstCityPosKey = "0,0";
             usedPositions.Add(firstCityPosKey);
-            
+
             City firstCity = new City(
                 GetRandomCityName(),
                 new Vector2Int(0, 0),
                 40  // 使用较大的尺寸确保覆盖玩家初始位置
             );
-            
-            firstCity.Buildings = GenerateCityBuildings(40);  // 生成更大的建筑布局
+
+            firstCity.Buildings = GenerateCityBuildings(GameController.Instance.GameConfig.citySize);  // 生成更大的建筑布局
             firstCity.Symbol = 'α';  // 使用α作为第一个城市的符号
             citySymbols[firstCityPosKey] = "α";
             cities.Add(firstCity);
-            
+
             Debug.Log($"在 (0,0) 生成了α城市: {firstCity.Name}，尺寸: 40x40");
 
             while (cities.Count < count)
@@ -154,16 +152,16 @@ namespace ALUNGAMES
                 if (!usedPositions.Contains(posKey))
                 {
                     usedPositions.Add(posKey);
-                    
+
                     // 使用固定尺寸20，与JS版本一致
                     City city = new City(
                         GetRandomCityName(),
                         new Vector2Int(x, y),
-                        20 // 固定城市大小为20
+                        GameController.Instance.GameConfig.citySize // 固定城市大小为20
                     );
 
-                    city.Buildings = GenerateCityBuildings(20);  // 为其他城市使用标准尺寸20
-                    
+                    city.Buildings = GenerateCityBuildings(GameController.Instance.GameConfig.citySize);  // 为其他城市使用标准尺寸20
+
                     // 使用希腊字母池中的符号
                     int symbolIndex = 0;
                     if (citySymbolPool.Length > 0)
@@ -171,13 +169,13 @@ namespace ALUNGAMES
                         symbolIndex = Mathf.Min(cities.Count, citySymbolPool.Length - 1);
                         if (symbolIndex < 0) symbolIndex = 0; // 防止负索引
                     }
-                    
+
                     // 安全检查
                     if (citySymbolPool.Length > 0)
                     {
-                        string symbol = citySymbolPool[symbolIndex]; 
+                        string symbol = citySymbolPool[symbolIndex];
                         citySymbols[posKey] = symbol;
-                        
+
                         // 设置城市的符号
                         if (!string.IsNullOrEmpty(symbol) && symbol.Length > 0)
                         {
@@ -190,7 +188,7 @@ namespace ALUNGAMES
                         citySymbols[posKey] = "C";
                         city.Symbol = 'C';
                     }
-                    
+
                     cities.Add(city);
                 }
             }
@@ -201,11 +199,11 @@ namespace ALUNGAMES
         {
             string[] prefixes = { "New", "Old", "East", "West", "North", "South" };
             string[] names = { "Haven", "Ridge", "Port", "Creek", "Summit", "Valley" };
-            
+
             bool usePrefix = Random.value > 0.5f;
             string prefix = usePrefix ? prefixes[Random.Range(0, prefixes.Length)] + " " : "";
             string name = names[Random.Range(0, names.Length)];
-            
+
             return prefix + name;
         }
 
@@ -213,7 +211,7 @@ namespace ALUNGAMES
         private List<Building> GenerateCityBuildings(int size)
         {
             List<Building> buildings = new List<Building>();
-            
+
             // 通过GameController.Instance获取BuildingManager
             BuildingManager buildingManager = GameController.Instance.BuildingManager;
             if (buildingManager == null)
@@ -232,18 +230,18 @@ namespace ALUNGAMES
 
             // 可能的建筑类型
             string[] buildingTypes = { "bar", "hotel", "exchange" };
-            
+
             // 随机选择1-2个额外建筑
             int additionalCount = Random.Range(1, 3);
             List<string> availableTypes = new List<string>(buildingTypes);
-            
+
             for (int i = 0; i < additionalCount && availableTypes.Count > 0; i++)
             {
                 // 随机选择一个建筑类型
                 int typeIndex = Random.Range(0, availableTypes.Count);
                 string buildingType = availableTypes[typeIndex];
                 availableTypes.RemoveAt(typeIndex); // 移除已选择的类型，确保不重复
-                
+
                 Building building = buildingManager.GenerateBuilding(buildingType);
                 if (building != null)
                 {
@@ -296,8 +294,8 @@ namespace ALUNGAMES
                     if (worldX >= 0 && worldX < mapWidth && worldY >= 0 && worldY < terrain.GetLength(0))
                     {
                         char tileChar = selectedLayout[y, x][0];
-                        var tileConfigs = asciiConfig.GetTileConfigsByChar(tileChar);
-                        
+                        var tileConfigs = asciiConfig.GetTileConfigsByChar(tileChar, "City");
+
                         if (tileConfigs != null && tileConfigs.Count > 0)
                         {
                             var config = tileConfigs[0];
@@ -318,7 +316,7 @@ namespace ALUNGAMES
             // 确保城市有建筑
             if (currentCity.Buildings == null || currentCity.Buildings.Count == 0)
             {
-                currentCity.Buildings = GenerateCityBuildings(20);
+                currentCity.Buildings = GenerateCityBuildings(GameController.Instance.GameConfig.citySize);
             }
 
             // 计算可用于放置建筑的区域（避开城墙和门）
@@ -351,9 +349,9 @@ namespace ALUNGAMES
                         {
                             int checkX = buildingX + x;
                             int checkY = buildingY + y;
-                            
+
                             // 确保检查的位置在城市范围内
-                            if (checkX >= 0 && checkX < layoutWidth && 
+                            if (checkX >= 0 && checkX < layoutWidth &&
                                 checkY >= 0 && checkY < layoutHeight)
                             {
                                 if (usedArea[checkY, checkX])
@@ -373,7 +371,7 @@ namespace ALUNGAMES
                             {
                                 int markX = buildingX + x;
                                 int markY = buildingY + y;
-                                if (markX >= 0 && markX < layoutWidth && 
+                                if (markX >= 0 && markX < layoutWidth &&
                                     markY >= 0 && markY < layoutHeight)
                                 {
                                     usedArea[markY, markX] = true;
@@ -390,12 +388,12 @@ namespace ALUNGAMES
                                 int worldX = currentX + buildingX + x;
                                 int worldY = currentY + buildingY + y;
 
-                                if (worldX >= 0 && worldX < mapWidth && 
+                                if (worldX >= 0 && worldX < mapWidth &&
                                     worldY >= 0 && worldY < terrain.GetLength(0))
                                 {
                                     char tileChar = building.Layout[y, x][0];
-                                    var tileConfigs = asciiConfig.GetTileConfigsByChar(tileChar);
-                                    
+                                    var tileConfigs = asciiConfig.GetTileConfigsByChar(tileChar, "Build");
+
                                     if (tileConfigs != null && tileConfigs.Count > 0)
                                     {
                                         var config = tileConfigs[0];
@@ -423,8 +421,8 @@ namespace ALUNGAMES
         {
             City currentCity = GetCityAtPosition(currentX, currentY);
             if (currentCity == null) return;
-            
-            int citySize = 20; // 固定城市大小为20，与JS版本一致
+
+            int citySize = GameController.Instance.GameConfig.citySize; // 固定城市大小为20，与JS版本一致
             int startX = Mathf.FloorToInt((mapWidth - citySize) / 2f);
             int startY = Mathf.FloorToInt((terrain.GetLength(0) - citySize) / 2f);
             int endX = startX + citySize - 1;
@@ -452,41 +450,63 @@ namespace ALUNGAMES
         }
 
         // 处理城市内的行动点
-        public bool HandleCityAction(Vector2Int playerPosition, TerrainType[,] terrain, int worldX, int worldY, 
+        public bool HandleCityAction(Vector2Int playerPosition, TerrainType[,] terrain, int worldX, int worldY,
                                      ref List<Task> tasks, ref int carriedCargo, ref float bitcoin, ref int strain)
         {
             City currentCity = GetCityAtPosition(worldX, worldY);
-            if (currentCity == null) return false;
+            if (currentCity == null)
+            {
+                Debug.LogError($"HandleCityAction: 无法找到城市坐标 ({worldX}, {worldY})");
+                return false;
+            }
 
             // 查找玩家所在的建筑物
             Building building = FindBuildingAtPosition(currentCity, playerPosition.x, playerPosition.y, terrain);
-            if (building == null) return false;
+            if (building == null)
+            {
+                Debug.Log($"HandleCityAction: 玩家位置 ({playerPosition.x},{playerPosition.y}) 不在任何建筑内");
+                return false;
+            }
 
             // 获取城市在当前地图中的起始位置
             int mapHeight = terrain.GetLength(0);
             int mapWidth = terrain.GetLength(1);
-            int startX = Mathf.FloorToInt((mapWidth - 20) / 2f);
-            int startY = Mathf.FloorToInt((mapHeight - 20) / 2f);
-            
+            int startX = Mathf.FloorToInt((mapWidth - GameController.Instance.GameConfig.citySize) / 2f);
+            int startY = Mathf.FloorToInt((mapHeight - GameController.Instance.GameConfig.citySize) / 2f);
+
             // 计算玩家在建筑内的局部坐标
             int localX = playerPosition.x - (startX + building.LocalPosition.x);
             int localY = playerPosition.y - (startY + building.LocalPosition.y);
-            
+
             // 获取玩家位置在建筑内的特殊点类型
             string pointType = GetSpecialPointType(building, localX, localY);
-            
-            if (string.IsNullOrEmpty(pointType)) return false;
+
+            if (string.IsNullOrEmpty(pointType))
+            {
+                Debug.Log($"HandleCityAction: 建筑 {building.Name} 内({localX},{localY}) 无特殊点");
+                return false;
+            }
+
+            Debug.Log($"HandleCityAction: 检测到特殊点 '{pointType}' 在 {building.Name}");
 
             // 根据特殊点类型执行不同行动
             switch (pointType)
             {
                 case "task":
-                    return HandleTaskPoint(ref tasks, ref carriedCargo, currentCity);
+                    bool taskResult = HandleTaskPoint(ref tasks, ref carriedCargo, currentCity);
+                    Debug.Log($"HandleCityAction: 任务点处理结果={taskResult}, 当前货物={carriedCargo}");
+                    return taskResult;
                 case "delivery":
-                    return HandleDeliveryPoint(ref tasks, ref carriedCargo, ref bitcoin);
+                    float prevBitcoin = bitcoin;
+                    bool deliveryResult = HandleDeliveryPoint(ref tasks, ref carriedCargo, ref bitcoin);
+                    Debug.Log($"HandleCityAction: 交付处理结果={deliveryResult}, " +
+                             $"比特币:{prevBitcoin}=>{bitcoin}, 剩余货物={carriedCargo}");
+                    return deliveryResult;
                 case "rest":
+                    Debug.Log($"HandleCityAction: 休息点处理(strain:{strain}=>0)");
                     return HandleRestPoint(ref strain);
                 default:
+                    Debug.LogWarning($"HandleCityAction: 未知特殊点类型: {pointType}");
                     return false;
             }
         }
@@ -497,14 +517,14 @@ namespace ALUNGAMES
             // 先获取城市在当前地图中的起始位置（基于20x20的固定尺寸）
             int mapHeight = terrain.GetLength(0);
             int mapWidth = terrain.GetLength(1);
-            int startX = Mathf.FloorToInt((mapWidth - 20) / 2f);
-            int startY = Mathf.FloorToInt((mapHeight - 20) / 2f);
-            
+            int startX = Mathf.FloorToInt((mapWidth - GameController.Instance.GameConfig.citySize) / 2f);
+            int startY = Mathf.FloorToInt((mapHeight - GameController.Instance.GameConfig.citySize) / 2f);
+
             foreach (Building building in city.Buildings)
             {
                 int buildingAbsX = startX + building.LocalPosition.x;
                 int buildingAbsY = startY + building.LocalPosition.y;
-                
+
                 if (x >= buildingAbsX && x < buildingAbsX + building.Width &&
                     y >= buildingAbsY && y < buildingAbsY + building.Height)
                 {
@@ -528,7 +548,7 @@ namespace ALUNGAMES
         private bool HandleTaskPoint(ref List<Task> tasks, ref int carriedCargo, City fromCity)
         {
             DeathStrandingConfig gameConfig = GameController.Instance.GameConfig;
-            
+
             if (carriedCargo >= gameConfig.maxCargo)
             {
                 Debug.Log($"Cargo capacity full ({carriedCargo}/{gameConfig.maxCargo})!");
@@ -567,7 +587,7 @@ namespace ALUNGAMES
                         1,
                         gameConfig.tasks.bitcoinReward
                     );
-                    
+
                     tasks.Add(newTask);
                     carriedCargo++;
 
@@ -589,7 +609,7 @@ namespace ALUNGAMES
         {
             bool delivered = false;
             DeathStrandingConfig gameConfig = GameController.Instance.GameConfig;
-            
+
             Vector2Int currentPos = new Vector2Int(
                 GameController.Instance.CurrentWorldX,
                 GameController.Instance.CurrentWorldY);
@@ -633,7 +653,8 @@ namespace ALUNGAMES
 
         public void GenerateCity(TerrainType[,] terrain, Vector2Int position, int index)
         {
-            int citySize = Random.Range(MIN_CITY_SIZE, MAX_CITY_SIZE + 1);
+            int citySize = GameController.Instance.GameConfig.citySize;
+            //  Random.Range(MIN_CITY_SIZE, MAX_CITY_SIZE + 1);
             string citySymbol = index < citySymbolPool.Length ? citySymbolPool[index] : "C";
 
             City city = new City(citySymbol, position, citySize);
@@ -695,4 +716,4 @@ namespace ALUNGAMES
             return true;
         }
     }
-} 
+}

@@ -7,9 +7,6 @@ namespace ALUNGAMES
     public class TaskPanel : MonoBehaviour
     {
         [SerializeField] private UIDocument uiDocument;
-        // 移除这些引用，将通过GameController.Instance获取
-        //[SerializeField] private PlayerController playerController;
-        //[SerializeField] private CityManager cityManager;
         
         private VisualElement root;
         private VisualElement taskPanel;

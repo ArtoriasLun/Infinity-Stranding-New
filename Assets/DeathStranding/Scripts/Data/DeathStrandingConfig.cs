@@ -6,6 +6,9 @@ namespace ALUNGAMES
     [CreateAssetMenu(fileName = "DeathStrandingConfig", menuName = "😊/Game Config")]
     public class DeathStrandingConfig : ScriptableObject
     {
+        [Header("World Settings")]
+        public float worldSeed = 100f;    // 全局种子确保世界一致性
+
         [Header("Player Attributes")]
         public int maxCargo = 3;          // 最大携带货物数量
         public int maxStrain = 100;       // 最大疲劳值
@@ -22,6 +25,9 @@ namespace ALUNGAMES
         public int worldHeight = 10;
         
         [Header("地形生成")]
+        public float minElevation = 0f;            // 最低海拔(米)
+        public float maxElevation = 2000f;         // 最高海拔(米)
+        public float elevationCurve = 1.0f;        // 高度曲线调节系数
         public float mountainThreshold = 0.6f;     // 高度图中超过此值生成山脉
         public float grassThreshold = 0.4f;        // 高度图中超过此值可能生成草地
         public float grassChance = 0.3f;           // 草地生成概率
@@ -32,7 +38,7 @@ namespace ALUNGAMES
         [Range(2, 10)]
         public int maxCityCount = 5;                 // 最大城市数量
         public int cityCount = 5;                  // 世界地图中的城市数量
-        public int citySize = 20;                  // 城市大小
+        public int citySize = 40;                  // 城市大小
         
         [Header("River Generation")]
         public int riverCount = 2;                 // 每个区块的河流数
@@ -100,4 +106,4 @@ namespace ALUNGAMES
                 tasks = new TaskSettings();
         }
     }
-} 
+}
