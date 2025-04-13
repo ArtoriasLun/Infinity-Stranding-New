@@ -74,7 +74,7 @@ MonoBehaviour:
     isGate: 0
     isSpecialPoint: 0
   - id: 5
-    name: City Wall
+    name: CityWall
     asciiChar: 35
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: 0}
@@ -86,7 +86,7 @@ MonoBehaviour:
     isGate: 0
     isSpecialPoint: 0
   - id: 6
-    name: City Gate
+    name: CityGate
     asciiChar: 124
     color: {r: 1, g: 1, b: 1, a: 1}
     sprite: {fileID: 0}
@@ -98,7 +98,7 @@ MonoBehaviour:
     isGate: 1
     isSpecialPoint: 0
   - id: 7
-    name: Building Wall
+    name: BuildingWall
     asciiChar: 35
     color: {r: 0.7490196, g: 0.5058824, b: 0.36862746, a: 1}
     sprite: {fileID: 0}
@@ -110,7 +110,7 @@ MonoBehaviour:
     isGate: 0
     isSpecialPoint: 0
   - id: 8
-    name: Building Gate
+    name: BuildingGate
     asciiChar: 124
     color: {r: 0.9490196, g: 0.5411765, b: 0.18039216, a: 1}
     sprite: {fileID: 0}

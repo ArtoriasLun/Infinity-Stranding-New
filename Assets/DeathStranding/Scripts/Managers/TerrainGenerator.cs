@@ -25,9 +25,7 @@ namespace ALUNGAMES
         // 生成地形
         public TerrainType[,] GenerateTerrain(int mapWidth, int mapHeight, int currentWorldX, int currentWorldY)
         {
-            try
-            {
-                // 检查参数有效性
+             // 检查参数有效性
                 if (mapWidth <= 0 || mapHeight <= 0)
                 {
                     Debug.LogError($"TerrainGenerator.GenerateTerrain: 无效的地图大小: {mapWidth}x{mapHeight}，使用默认值40x40");
@@ -130,23 +128,22 @@ namespace ALUNGAMES
                 }
                 
                 return terrain;
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"GenerateTerrain发生错误: {e.Message}\n{e.StackTrace}");
+            // catch (System.Exception e)
+            // {
+            //     Debug.LogError($"GenerateTerrain发生错误: {e.Message}\n{e.StackTrace}");
                 
-                // 创建应急地形
-                TerrainType[,] fallbackTerrain = new TerrainType[mapWidth > 0 ? mapWidth : 40, mapHeight > 0 ? mapHeight : 40];
-                for (int y = 0; y < fallbackTerrain.GetLength(0); y++)
-                {
-                    for (int x = 0; x < fallbackTerrain.GetLength(1); x++)
-                    {
-                        fallbackTerrain[y, x] = TerrainType.Road;
-                    }
-                }
+            //     // 创建应急地形
+            //     TerrainType[,] fallbackTerrain = new TerrainType[mapWidth > 0 ? mapWidth : 40, mapHeight > 0 ? mapHeight : 40];
+            //     for (int y = 0; y < fallbackTerrain.GetLength(0); y++)
+            //     {
+            //         for (int x = 0; x < fallbackTerrain.GetLength(1); x++)
+            //         {
+            //             fallbackTerrain[y, x] = TerrainType.Road;
+            //         }
+            //     }
                 
-                return fallbackTerrain;
-            }
+            //     return fallbackTerrain;
+            // }
         }
         
         // 新增地形管线类
