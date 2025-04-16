@@ -16,86 +16,102 @@ MonoBehaviour:
   - layoutName: BarLL
     buildingType: 0
     sizeCategory: 3
-    layoutData: '#######....
+    layoutData: '.............
 
-      #.....|....
+      .#######.....
 
-      #+....|....
+      .#.....|.....
 
-      #.....|....
+      .#+....|.....
 
-      #.....#####
+      .#.....|.....
 
-      #.........#
+      .#.....#####.
 
-      #+...+...+#
+      .#.........#.
 
-      #.........#
+      .#+...+...+#.
 
-      ###########'
+      .#.........#.
+
+      .###########.
+
+      .............'
     requiredPoints: 
     optionalPoints: 
   - layoutName: ExangeL
     buildingType: 2
     sizeCategory: 2
-    layoutData: '.#######.
+    layoutData: '...........
 
-      .#.....#.
+      ..#######..
 
-      .#.....#.
+      ..#.....#..
 
-      .#.....#.
+      ..#.....#..
 
-      .|..+..|.
+      ..#.....#..
 
-      .#.....#.
+      ..|..+..|..
 
-      .#.....#.
+      ..#.....#..
 
-      .#.....#.
+      ..#.....#..
 
-      .#######.'
+      ..#.....#..
+
+      ..#######..
+
+      ...........'
     requiredPoints: 
     optionalPoints: 
   - layoutName: RestaurantM
     buildingType: 1
     sizeCategory: 1
-    layoutData: '#######
+    layoutData: '.........
 
-      #+...+#
+      .#######.
 
-      #.....#
+      .#+...+#.
 
-      |.....|
+      .#.....#.
 
-      #.....#
+      .|.....|.
 
-      #+...+#
+      .#.....#.
 
-      #######'
+      .#+...+#.
+
+      .#######.
+
+      .........'
     requiredPoints: 
     optionalPoints: 
   - layoutName: YardS
     buildingType: 3
     sizeCategory: 0
-    layoutData: "#####\r\n#.\u25A1.#\r\n|...|\r\n#.\u25A0.#\r\n#####"
+    layoutData: ".......\r\n.#####.\r\n.#.\u25A1.#.\r\n.|...|.\r\n.#.\u25A0.#.\r\n.#####.\r\n......."
     requiredPoints: 00000000
     optionalPoints: 
   - layoutName: HotelM
     buildingType: 4
     sizeCategory: 1
-    layoutData: '#######
+    layoutData: '.........
 
-      #+...+#
+      .#######.
 
-      #.....#
+      .#+...+#.
 
-      |.....|
+      .#.....#.
 
-      #.....#
+      .|.....|.
 
-      #..+..#
+      .#.....#.
 
-      #######'
+      .#..+..#.
+
+      .#######.
+
+      .........'
     requiredPoints: 02000000
     optionalPoints: 

@@ -5,10 +5,10 @@ public static class BuildingLayoutUtils
 {
     public static readonly Dictionary<SizeCategory, Vector2Int> SizeDimensions = new Dictionary<SizeCategory, Vector2Int>
     {
-        { SizeCategory.Small, new Vector2Int(5, 5) },
-        { SizeCategory.Medium, new Vector2Int(7, 7) },
-        { SizeCategory.Large, new Vector2Int(9, 9) },
-        { SizeCategory.LargeL, new Vector2Int(11, 9) }
+        { SizeCategory.Small, new Vector2Int(7, 7) },
+        { SizeCategory.Medium, new Vector2Int(9, 9) },
+        { SizeCategory.Large, new Vector2Int(11, 11) },
+        { SizeCategory.LargeL, new Vector2Int(13, 11) }
     };
 
     public static bool IsValidPosition(Vector2Int position, SizeCategory size)

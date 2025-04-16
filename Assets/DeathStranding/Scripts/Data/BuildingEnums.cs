@@ -9,10 +9,10 @@ public enum BuildingType
 
 public enum SizeCategory
 {
-    Small,      // 5x5
-    Medium,     // 7x7
-    Large,      // 9x9
-    LargeL      // 11x9
+    Small,      // 7x7
+    Medium,     // 9x9
+    Large,      // 11x11
+    LargeL      // 13x11
 }
 
 public enum SpecialPointType

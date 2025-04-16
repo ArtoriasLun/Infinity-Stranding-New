@@ -38,41 +38,34 @@ namespace ALUNGAMES.Editor
 
         private void InitializeGrid()
         {
-            Vector2Int dimensions = GetSizeDimensions(selectedSizeCategory);
+            Vector2Int dimensions = BuildingLayoutUtils.SizeDimensions[selectedSizeCategory];
             if (gridData == null || 
                 gridData.GetLength(0) != dimensions.y || 
                 gridData.GetLength(1) != dimensions.x)
             {
                 gridData = new string[dimensions.y, dimensions.x];
                 
-                // 初始化边框
+                // 初始化所有格子为空地
                 for (int y = 0; y < dimensions.y; y++)
                 {
                     for (int x = 0; x < dimensions.x; x++)
                     {
-                        if (y == 0 || y == dimensions.y - 1 || x == 0 || x == dimensions.x - 1)
-                            gridData[y, x] = "#"; // 墙
-                        else
-                            gridData[y, x] = "."; // 空地
+                        gridData[y, x] = "."; // 空地
                     }
                 }
-            }
-        }
 
-        private Vector2Int GetSizeDimensions(SizeCategory size)
-        {
-            switch (size)
-            {
-                case SizeCategory.Small:
-                    return new Vector2Int(5, 5);
-                case SizeCategory.Medium:
-                    return new Vector2Int(7, 7);
-                case SizeCategory.Large:
-                    return new Vector2Int(9, 9);
-                case SizeCategory.LargeL:
-                    return new Vector2Int(11, 9);
-                default:
-                    return new Vector2Int(5, 5);
+                // 创建内部围墙（距离边界1格）
+                for (int y = 1; y < dimensions.y - 1; y++)
+                {
+                    for (int x = 1; x < dimensions.x - 1; x++)
+                    {
+                        // 在距离边界1格的位置画围墙
+                        if (y == 1 || y == dimensions.y - 2 || x == 1 || x == dimensions.x - 2)
+                        {
+                            gridData[y, x] = "#"; // 墙
+                        }
+                    }
+                }
             }
         }
 
@@ -177,7 +170,7 @@ namespace ALUNGAMES.Editor
 
                 // 网格编辑区域
                 scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
-                Vector2Int dimensions = GetSizeDimensions(selectedSizeCategory);
+                Vector2Int dimensions = BuildingLayoutUtils.SizeDimensions[selectedSizeCategory];
                 Rect gridRect = GUILayoutUtility.GetRect(
                     dimensions.x * CELL_SIZE + GRID_PADDING * 2,
                     dimensions.y * CELL_SIZE + GRID_PADDING * 2);
@@ -189,6 +182,53 @@ namespace ALUNGAMES.Editor
                 HandleMouseInput(gridRect);
 
                 EditorGUILayout.EndScrollView();
+
+                // 移动按钮
+                EditorGUILayout.Space(10);
+                EditorGUILayout.LabelField("Move Layout", EditorStyles.boldLabel);
+                
+                // 上按钮和缩放按钮
+                EditorGUILayout.BeginHorizontal();
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button("-", GUILayout.Width(30)))
+                {
+                    ScaleLayout(false);
+                }
+                if (GUILayout.Button("↑", GUILayout.Width(50)))
+                {
+                    MoveLayout(new Vector2Int(0, -1));
+                }
+                if (GUILayout.Button("+", GUILayout.Width(30)))
+                {
+                    ScaleLayout(true);
+                }
+                GUILayout.FlexibleSpace();
+                EditorGUILayout.EndHorizontal();
+
+                // 左中右按钮
+                EditorGUILayout.BeginHorizontal();
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button("←", GUILayout.Width(50)))
+                {
+                    MoveLayout(Vector2Int.left);
+                }
+                GUILayout.Space(50);
+                if (GUILayout.Button("→", GUILayout.Width(50)))
+                {
+                    MoveLayout(Vector2Int.right);
+                }
+                GUILayout.FlexibleSpace();
+                EditorGUILayout.EndHorizontal();
+
+                // 下按钮
+                EditorGUILayout.BeginHorizontal();
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button("↓", GUILayout.Width(50)))
+                {
+                    MoveLayout(new Vector2Int(0, 1));
+                }
+                GUILayout.FlexibleSpace();
+                EditorGUILayout.EndHorizontal();
 
                 // 操作按钮
                 EditorGUILayout.BeginHorizontal();
@@ -337,7 +377,7 @@ namespace ALUNGAMES.Editor
             // 绘制背景
             EditorGUI.DrawRect(gridRect, new Color(0.2f, 0.2f, 0.2f));
 
-            Vector2Int dimensions = GetSizeDimensions(selectedSizeCategory);
+            Vector2Int dimensions = BuildingLayoutUtils.SizeDimensions[selectedSizeCategory];
             for (int y = 0; y < dimensions.y; y++)
             {
                 for (int x = 0; x < dimensions.x; x++)
@@ -372,7 +412,7 @@ namespace ALUNGAMES.Editor
                 Vector2 mousePos = e.mousePosition;
                 if (gridRect.Contains(mousePos))
                 {
-                    Vector2Int dimensions = GetSizeDimensions(selectedSizeCategory);
+                    Vector2Int dimensions = BuildingLayoutUtils.SizeDimensions[selectedSizeCategory];
                     int x = Mathf.FloorToInt((mousePos.x - gridRect.x - GRID_PADDING) / CELL_SIZE);
                     int y = Mathf.FloorToInt((mousePos.y - gridRect.y - GRID_PADDING) / CELL_SIZE);
 
@@ -406,7 +446,7 @@ namespace ALUNGAMES.Editor
             }
 
             StringBuilder layoutBuilder = new StringBuilder();
-            Vector2Int dimensions = GetSizeDimensions(selectedSizeCategory);
+            Vector2Int dimensions = BuildingLayoutUtils.SizeDimensions[selectedSizeCategory];
             for (int y = 0; y < dimensions.y; y++)
             {
                 for (int x = 0; x < dimensions.x; x++)
@@ -442,7 +482,7 @@ namespace ALUNGAMES.Editor
         {
             // 检查布局中是否包含所有必需的特殊点
             HashSet<SpecialPointType> foundPoints = new HashSet<SpecialPointType>();
-            Vector2Int dimensions = GetSizeDimensions(selectedSizeCategory);
+            Vector2Int dimensions = BuildingLayoutUtils.SizeDimensions[selectedSizeCategory];
 
             // 特殊处理：如果是包裹坞（Yard），必须有交货点
             if (selectedBuildingType == BuildingType.Yard && 
@@ -485,6 +525,81 @@ namespace ALUNGAMES.Editor
                 case SpecialPointType.RestPoint: return "+";
                 default: return ".";
             }
+        }
+
+        private void MoveLayout(Vector2Int direction)
+        {
+            Vector2Int dimensions = BuildingLayoutUtils.SizeDimensions[selectedSizeCategory];
+            string[,] newGrid = new string[dimensions.y, dimensions.x];
+
+            // 初始化新网格为空地
+            for (int y = 0; y < dimensions.y; y++)
+            {
+                for (int x = 0; x < dimensions.x; x++)
+                {
+                    newGrid[y, x] = ".";
+                }
+            }
+
+            // 移动布局
+            for (int y = 0; y < dimensions.y; y++)
+            {
+                for (int x = 0; x < dimensions.x; x++)
+                {
+                    int newX = x + direction.x;
+                    int newY = y + direction.y;
+
+                    // 检查新位置是否在网格范围内
+                    if (newX >= 0 && newX < dimensions.x && newY >= 0 && newY < dimensions.y)
+                    {
+                        newGrid[newY, newX] = gridData[y, x];
+                    }
+                }
+            }
+
+            gridData = newGrid;
+            GUI.changed = true;
+            Repaint();
+        }
+
+        private void ScaleLayout(bool scaleUp)
+        {
+            Vector2Int dimensions = BuildingLayoutUtils.SizeDimensions[selectedSizeCategory];
+            string[,] newGrid = new string[dimensions.y, dimensions.x];
+            
+            // 初始化新网格为空地
+            for (int y = 0; y < dimensions.y; y++)
+            {
+                for (int x = 0; x < dimensions.x; x++)
+                {
+                    newGrid[y, x] = ".";
+                }
+            }
+
+            // 计算缩放参数
+            float scale = scaleUp ? (dimensions.x + 2f) / dimensions.x : (dimensions.x - 2f) / dimensions.x;
+            
+            // 复制并缩放布局
+            for (int y = 0; y < dimensions.y; y++)
+            {
+                for (int x = 0; x < dimensions.x; x++)
+                {
+                    // 计算源坐标
+                    int sourceX = Mathf.RoundToInt(x / scale);
+                    int sourceY = Mathf.RoundToInt(y / scale);
+
+                    // 检查源坐标是否在原网格范围内
+                    if (sourceX >= 0 && sourceX < dimensions.x && 
+                        sourceY >= 0 && sourceY < dimensions.y)
+                    {
+                        newGrid[y, x] = gridData[sourceY, sourceX];
+                    }
+                }
+            }
+
+            gridData = newGrid;
+            GUI.changed = true;
+            Repaint();
         }
     }
 } 
