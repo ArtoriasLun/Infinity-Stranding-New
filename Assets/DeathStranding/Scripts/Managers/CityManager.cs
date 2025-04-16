@@ -172,7 +172,7 @@ namespace ALUNGAMES
             }
 
             // 确保每个城市都有yard（交付点）
-            Building yardBuilding = buildingManager.GenerateBuilding("yard");
+            Building yardBuilding = buildingManager.GenerateBuilding(BuildingType.Yard);
             if (yardBuilding != null)
             {
                 buildings.Add(yardBuilding);
@@ -180,17 +180,17 @@ namespace ALUNGAMES
             }
 
             // 可能的建筑类型
-            string[] buildingTypes = { "bar", "hotel", "exchange" };
+            BuildingType[] buildingTypes = { BuildingType.Bar, BuildingType.Hotel, BuildingType.Exchange };
 
             // 随机选择1-2个额外建筑
             int additionalCount = Random.Range(1, 3);
-            List<string> availableTypes = new List<string>(buildingTypes);
+            List<BuildingType> availableTypes = new List<BuildingType>(buildingTypes);
 
             for (int i = 0; i < additionalCount && availableTypes.Count > 0; i++)
             {
                 // 随机选择一个建筑类型
                 int typeIndex = Random.Range(0, availableTypes.Count);
-                string buildingType = availableTypes[typeIndex];
+                BuildingType buildingType = availableTypes[typeIndex];
                 availableTypes.RemoveAt(typeIndex); // 移除已选择的类型，确保不重复
 
                 Building building = buildingManager.GenerateBuilding(buildingType);

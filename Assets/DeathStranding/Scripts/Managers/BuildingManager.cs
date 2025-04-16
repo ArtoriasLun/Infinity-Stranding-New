@@ -7,248 +7,135 @@ namespace ALUNGAMES
 {
     public class BuildingManager : MonoBehaviour
     {
-        // 建筑类型定义
-        [System.Serializable]
-        public class BuildingType
-        {
-            public string Name;
-            public List<string> RequiredPoints;  // 必需的特殊点
-            public List<string> OptionalPoints;  // 可选的特殊点
-            public List<string> RoomSizes;       // 可用的房间大小
-        }
+        [SerializeField]
+        private BuildingLayoutConfig layoutConfig;
 
-        // 房间模板定义 - 确保与JS版本完全一致
-        private Dictionary<string, string[,]> roomTemplates = new Dictionary<string, string[,]>
+        private Dictionary<SpecialPointType, string> specialPointSymbols = new Dictionary<SpecialPointType, string>
         {
-            {
-                "small", new string[,]
-                {
-                    {"#", "#", "#", "#"},
-                    {"|", ".", ".", "#"},
-                    {"#", ".", ".", "|"},
-                    {"#", "#", "#", "#"}
-                }
-            },
-            {
-                "medium", new string[,]
-                {
-                    {"#", "#", "#", "#", "#"},
-                    {"#", ".", ".", ".", "#"},
-                    {"|", ".", ".", ".", "|"},
-                    {"#", ".", ".", ".", "#"},
-                    {"#", "#", "#", "#", "#"}
-                }
-            },
-            {
-                "large", new string[,]
-                {
-                    {"#", "#", "#", "#", "#", "#"},
-                    {"#", ".", ".", ".", ".", "#"},
-                    {"#", ".", ".", ".", ".", "|"},
-                    {"|", ".", ".", ".", ".", "#"},
-                    {"#", ".", ".", ".", ".", "#"},
-                    {"#", "#", "#", "#", "#", "#"}
-                }
-            },
-            {
-                "largeL", new string[,]
-                {
-                    {"#", "#", "#", "#", "#", "#"},
-                    {"#", ".", ".", ".", ".", "#"},
-                    {"|", ".", ".", ".", ".", "|"},
-                    {"#", ".", ".", "#", "#", "#"},
-                    {"#", ".", ".", "#", ".", "."},
-                    {"#", "#", "#", "#", ".", "."}
-                }
-            }
+            { SpecialPointType.DeliveryPoint, "□" },
+            { SpecialPointType.PickupPoint, "■" },
+            { SpecialPointType.RestPoint, "+" }
         };
 
-        // 特殊点类型 - 确保与JS版本完全一致
-        private Dictionary<string, string> specialPoints = new Dictionary<string, string>
-        {
-            {"task", "■"},    // 任务点
-            {"delivery", "□"}, // 交付点
-            {"rest", "+"}      // 休息点
-        };
-
-        // 建筑类型定义
-        private Dictionary<string, BuildingType> buildingTypes;
-
-        // 初始化建筑类型
         private void Awake()
         {
-            InitializeBuildingTypes();
-        }
-
-        private void InitializeBuildingTypes()
-        {
-            buildingTypes = new Dictionary<string, BuildingType>
+            if (layoutConfig == null)
             {
+                layoutConfig = Resources.Load<BuildingLayoutConfig>("BuildingLayoutConfig");
+                if (layoutConfig == null)
                 {
-                    "bar", new BuildingType
-                    {
-                        Name = "Bar",
-                        RequiredPoints = new List<string> {"task"},
-                        OptionalPoints = new List<string> {"rest"},
-                        RoomSizes = new List<string> {"small", "medium"}
-                    }
-                },
-                {
-                    "yard", new BuildingType
-                    {
-                        Name = "Yard",
-                        RequiredPoints = new List<string> {"delivery"},
-                        OptionalPoints = new List<string>(),
-                        RoomSizes = new List<string> {"medium", "large", "largeL"}
-                    }
-                },
-                {
-                    "hotel", new BuildingType
-                    {
-                        Name = "Hotel",
-                        RequiredPoints = new List<string> {"rest"},
-                        OptionalPoints = new List<string>(),
-                        RoomSizes = new List<string> {"medium", "large"}
-                    }
-                },
-                {
-                    "exchange", new BuildingType
-                    {
-                        Name = "Exchange",
-                        RequiredPoints = new List<string>(),
-                        OptionalPoints = new List<string>(),
-                        RoomSizes = new List<string> {"small", "medium"}
-                    }
+                    Debug.LogError("Failed to load BuildingLayoutConfig from Resources folder!");
+                    return;
                 }
-            };
+            }
         }
 
-        // 生成随机建筑布局
-        public Building GenerateBuilding(string type)
+        // 生成建筑布局
+        public Building GenerateBuilding(BuildingType buildingType)
         {
-            if (!buildingTypes.TryGetValue(type, out BuildingType buildingType))
+            if (layoutConfig == null) return null;
+
+            // 获取所有匹配的布局
+            var matchingLayouts = layoutConfig.layouts.FindAll(l => l.buildingType == buildingType);
+            if (matchingLayouts.Count == 0)
+            {
+                Debug.LogError($"No layouts found for building type: {buildingType}");
                 return null;
+            }
 
-            // 随机选择房间尺寸
-            string roomSize = buildingType.RoomSizes[Random.Range(0, buildingType.RoomSizes.Count)];
-            string[,] template = roomTemplates[roomSize];
+            // 随机选择一个布局
+            var selectedLayout = matchingLayouts[Random.Range(0, matchingLayouts.Count)];
 
-            // 复制模板
-            int height = template.GetLength(0);
-            int width = template.GetLength(1);
-            string[,] layout = new string[height, width];
+            // 创建建筑实例
+            Building building = new Building(buildingType.ToString(), Vector2Int.zero);
+            building.Name = buildingType.ToString();
 
-            for (int y = 0; y < height; y++)
+            // 获取布局数组
+            char[,] layoutArray = selectedLayout.GetLayoutArray();
+            building.Width = layoutArray.GetLength(1);
+            building.Height = layoutArray.GetLength(0);
+
+            // 转换为string数组并初始化特殊点
+            building.Layout = new string[building.Height, building.Width];
+            building.SpecialPoints = new Dictionary<string, List<Vector2Int>>();
+
+            // 处理布局中的每个字符
+            for (int y = 0; y < building.Height; y++)
             {
-                for (int x = 0; x < width; x++)
+                for (int x = 0; x < building.Width; x++)
                 {
-                    layout[y, x] = template[y, x];
+                    char c = layoutArray[y, x];
+                    string symbol = c.ToString();
+
+                    // 检查是否是特殊点
+                    foreach (var pointType in Enum.GetValues(typeof(SpecialPointType)))
+                    {
+                        var specialPointType = (SpecialPointType)pointType;
+                        if (c.ToString().Equals(GetSpecialPointSymbol(specialPointType)))
+                        {
+                            // 存储特殊点位置
+                            string pointTypeStr = specialPointType.ToString().ToLower();
+                            if (!building.SpecialPoints.ContainsKey(pointTypeStr))
+                            {
+                                building.SpecialPoints[pointTypeStr] = new List<Vector2Int>();
+                            }
+                            building.SpecialPoints[pointTypeStr].Add(new Vector2Int(x, y));
+                        }
+                    }
+
+                    building.Layout[y, x] = symbol;
                 }
             }
 
-            Building building = new Building(type, Vector2Int.zero);
-            building.Name = buildingType.Name;
-            building.Width = width;
-            building.Height = height;
-            building.Layout = layout;
-
-            // 放置必要的特殊点
-            foreach (string point in buildingType.RequiredPoints)
-            {
-                PlaceSpecialPoint(building, layout, point);
-            }
-
-            // 放置可选特殊点（50%几率）
-            foreach (string point in buildingType.OptionalPoints)
+            // 随机添加可选特殊点（50%几率）
+            foreach (var optionalPoint in selectedLayout.optionalPoints)
             {
                 if (Random.value < 0.5f)
                 {
-                    PlaceSpecialPoint(building, layout, point);
+                    TryPlaceOptionalPoint(building, optionalPoint);
                 }
             }
 
             return building;
         }
 
-        // 在布局中放置特殊点
-        private void PlaceSpecialPoint(Building building, string[,] layout, string pointType)
+        private void TryPlaceOptionalPoint(Building building, SpecialPointType pointType)
         {
             List<Vector2Int> validPositions = new List<Vector2Int>();
             
-            // Find all valid positions (empty floor tiles)
-            for (int y = 1; y < layout.GetLength(0) - 1; y++)
+            // 寻找所有有效位置（空地）
+            for (int y = 1; y < building.Height - 1; y++)
             {
-                for (int x = 1; x < layout.GetLength(1) - 1; x++)
+                for (int x = 1; x < building.Width - 1; x++)
                 {
-                    if (layout[y, x] == ".")
-                    {
-                        // For task points, prefer positions near walls or in corners
-                        if (pointType == "task")
-                        {
-                            bool nearWall = false;
-                            // Check adjacent tiles for walls
-                            for (int dy = -1; dy <= 1; dy++)
-                            {
-                                for (int dx = -1; dx <= 1; dx++)
-                                {
-                                    if (layout[y + dy, x + dx] == "#")
-                                    {
-                                        nearWall = true;
-                                        break;
-                                    }
-                                }
-                                if (nearWall) break;
-                            }
-                            
-                            if (nearWall)
-                            {
-                                // Higher priority for positions near walls
-                                validPositions.Insert(0, new Vector2Int(x, y));
-                            }
-                            else
-                            {
-                                validPositions.Add(new Vector2Int(x, y));
-                            }
-                        }
-                        else
+                    if (building.Layout[y, x] == ".")
                         {
                             validPositions.Add(new Vector2Int(x, y));
-                        }
                     }
                 }
             }
 
-            // If we found valid positions, place the point
             if (validPositions.Count > 0)
             {
-                // For task points, prefer positions from the beginning of the list (near walls)
-                Vector2Int pos = validPositions[0];
-                string specialPointChar = GetSpecialPointChar(pointType);
+                Vector2Int pos = validPositions[Random.Range(0, validPositions.Count)];
+                string symbol = GetSpecialPointSymbol(pointType);
 
                 // 获取ASCIIConfig并验证字符
                 ASCIIConfig asciiConfig = GameController.Instance.ASCIIRenderer.asciiConfig;
-                if (asciiConfig != null && !string.IsNullOrEmpty(specialPointChar))
+                if (asciiConfig != null && !string.IsNullOrEmpty(symbol))
                 {
-                    var tileConfigs = asciiConfig.GetTileConfigsByChar(specialPointChar[0],"");
+                    var tileConfigs = asciiConfig.GetTileConfigsByChar(symbol[0], "");
                     if (tileConfigs != null && tileConfigs.Count > 0)
                     {
-                        layout[pos.y, pos.x] = specialPointChar;
-                        
-                        // Store the special point location
-                        if (!building.SpecialPoints.ContainsKey(pointType))
+                        building.Layout[pos.y, pos.x] = symbol;
+
+                        string pointTypeStr = pointType.ToString().ToLower();
+                        if (!building.SpecialPoints.ContainsKey(pointTypeStr))
                         {
-                            building.SpecialPoints[pointType] = new List<Vector2Int>();
+                            building.SpecialPoints[pointTypeStr] = new List<Vector2Int>();
                         }
-                        building.SpecialPoints[pointType].Add(pos);
+                        building.SpecialPoints[pointTypeStr].Add(pos);
                     }
-                    else
-                    {
-                        Debug.LogWarning($"No valid tile configuration found for special point character: {specialPointChar}");
-                    }
-                }
-                else
-                {
-                    Debug.LogError("ASCIIConfig not found or invalid special point character!");
                 }
             }
         }
@@ -261,7 +148,7 @@ namespace ALUNGAMES
                 return false;
 
             string tile = building.Layout[y, x];
-            return specialPoints.ContainsValue(tile);
+            return specialPointSymbols.ContainsValue(tile);
         }
 
         // 获取特殊点类型
@@ -272,19 +159,19 @@ namespace ALUNGAMES
                 return null;
 
             string tile = building.Layout[y, x];
-            foreach (var pair in specialPoints)
+            foreach (var pair in specialPointSymbols)
             {
                 if (pair.Value == tile)
-                    return pair.Key;
+                    return pair.Key.ToString().ToLower();
             }
             return null;
         }
 
         // 获取特殊点对应字符
-        public string GetSpecialPointChar(string type)
+        private string GetSpecialPointSymbol(SpecialPointType pointType)
         {
-            if (specialPoints.TryGetValue(type, out string value))
-                return value;
+            if (specialPointSymbols.TryGetValue(pointType, out string symbol))
+                return symbol;
             return null;
         }
     }

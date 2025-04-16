@@ -229,6 +229,18 @@ MonoBehaviour:
     isWall: 0
     isGate: 0
     isSpecialPoint: 0
+  - id: -2
+    name: SignText
+    asciiChar: 83
+    color: {r: 1, g: 0.8, b: 0, a: 1}
+    sprite: {fileID: 0}
+    isPassable: 1
+    moveResistance: 0
+    strainChance: 0
+    strainAmount: 0
+    isWall: 0
+    isGate: 0
+    isSpecialPoint: 0
   - id: -1
     name: Player
     asciiChar: 80

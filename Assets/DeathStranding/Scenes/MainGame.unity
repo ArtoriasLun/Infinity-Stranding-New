@@ -760,7 +760,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1442637851
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -773,7 +773,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bba5221b0bcc24b40b815405f5f61e42, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  asciiConfig: {fileID: 11400000, guid: 1d0685e1eed950544ae720174e9ec001, type: 2}
+  asciiConfig: {fileID: 0}
   grid: {fileID: 1089564489}
   terrainTilemap: {fileID: 1929377085}
   objectsTilemap: {fileID: 356963135}
@@ -918,6 +918,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   uiDocument: {fileID: 1749760458}
+  asciiConfig: {fileID: 0}
+  showTileIds: 0
 --- !u!1 &1889308593
 GameObject:
   m_ObjectHideFlags: 0
@@ -954,8 +956,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   inputActions: {fileID: -944628639613478452, guid: 35845fe01580c41289b024647b1d1c53, type: 3}
-  moveTime: 0.1
-  mt: 0
   isHoldMode: 0
   clickModeDelay: 0.1
   holdModeDelay: 0.15
@@ -1007,6 +1007,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c3562cb84839e540bbfa0d357b6cb20, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cityLayoutConfig: {fileID: 0}
 --- !u!114 &1889308599
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1019,6 +1020,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9517ef4dbc05e084490ffc96e4357720, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  layoutConfig: {fileID: 0}
 --- !u!114 &1889308600
 MonoBehaviour:
   m_ObjectHideFlags: 0

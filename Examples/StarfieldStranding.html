@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>外卖之旅</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #000000;
+    color: #00FF00;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.phone {
+    width: 360px;
+    height: 640px;
+    background-color: #000000;
+    border: 2px solid #00FF00;
+    overflow: hidden;
+    position: relative;
+}
+
+.status-bar {
+    height: 20px;
+    background-color: #000000;
+    color: #00FF00;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 10px;
+    align-items: center;
+    font-size: 12px;
+    border-bottom: 1px solid #00FF00;
+}
+
+.container {
+    width: 100%;
+    height: calc(100% - 60px);
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.section {
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #000000;
+    border: 1px solid #00FF00;
+}
+
+.order-card {
+    background-color: #000000;
+    border: 1px solid #00FF00;
+    padding: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.order-card span {
+    font-size: 14px;
+}
+
+#order-list {
+    list-style: none;
+    padding: 0;
+}
+
+.button {
+    background-color: #000000;
+    color: #00FF00;
+    border: 1px solid #00FF00;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.button:hover {
+    background-color: #00FF00;
+    color: #000000;
+}
+
+#map-display {
+    white-space: pre-wrap;
+    font-size: 12px;
+    line-height: 1.2;
+    background-color: #000000;
+    padding: 10px;
+    border: 1px solid #00FF00;
+}
+
+.nav-bar {
+    height: 40px;
+    background-color: #000000;
+    color: #00FF00;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    border-top: 1px solid #00FF00;
+}
+
+.nav-bar button {
+    background: none;
+    border: none;
+    color: #00FF00;
+    font-size: 14px;
+    cursor: pointer;
+}
+</style>
+</head>
+<body>
+    <div class="phone">
+        <div class="status-bar">
+            <span>9:41 AM</span>
+            <span>100%</span>
+        </div>
+        <div class="container">
+            <div class="header">
+                <h1>服务范围</h1>
+                <p>覆盖绿林镇、石桥镇、云海镇</p>
+            </div>
+            <div id="order-section" class="section">
+                <h2>[ O ] 可用订单</h2>
+                <ul id="order-list"></ul>
+                <button id="refresh-orders" class="button">刷新订单</button>
+            </div>
+            <div id="delivery-section" class="section" style="display: none;">
+                <h2>[ D ] 配送中</h2>
+                <p id="current-delivery"></p>
+                <div id="map-display"></div>
+                <button id="complete-delivery" class="button">完成配送</button>
+            </div>
+            <div id="status-section" class="section">
+                <h2>[ S ] 状态</h2>
+                <p id="status-text">等待新订单...</p>
+                <p id="balance-text">当前余额: $0</p>
+            </div>
+        </div>
+        <div class="nav-bar">
+            <button>首页</button>
+            <button>订单</button>
+            <button>我的</button>
+        </div>
+    </div>
+
+    <script>
+        const orderListElement = document.getElementById('order-list');
+        const refreshOrdersButton = document.getElementById('refresh-orders');
+        const deliverySection = document.getElementById('delivery-section');
+        const currentDeliveryElement = document.getElementById('current-delivery');
+        const completeDeliveryButton = document.getElementById('complete-delivery');
+        const statusTextElement = document.getElementById('status-text');
+        const balanceTextElement = document.getElementById('balance-text');
+        const mapDisplayElement = document.getElementById('map-display');
+
+        let availableOrders = [];
+        let currentOrder = null;
+        let currentLocation = "绿林镇";
+        let playerBalance = 0; // 玩家当前余额
+
+        const restaurants = {
+            "绿林镇饺子王": ["猪肉饺子", "韭菜盒子", "小笼包"],
+            "石桥镇烧烤屋": ["烤鸭", "叉烧", "烧肉"],
+            "云海镇面馆": ["牛肉面", "炸酱面", "云吞面"]
+        };
+
+        function generateRandomOrder() {
+            const locations = ["绿林镇", "石桥镇", "云海镇"];
+            const restaurantsArray = Object.keys(restaurants);
+            const randomLocation = locations[Math.floor(Math.random() * locations.length)];
+            const randomRestaurantName = restaurantsArray[Math.floor(Math.random() * restaurantsArray.length)];
+            const menu = restaurants[randomRestaurantName];
+            const randomItem = menu[Math.floor(Math.random() * menu.length)];
+            const reward = Math.floor(Math.random() * 11) + 5; // 奖励 5 到 15 美元
+            return {
+                id: Math.random().toString(36).substring(7),
+                restaurant: randomRestaurantName,
+                item: randomItem,
+                location: randomLocation,
+                reward: reward
+            };
+        }
+
+        function renderOrders() {
+            orderListElement.innerHTML = "";
+            if (availableOrders.length === 0) {
+                const listItem = document.createElement('li');
+                listItem.textContent = "没有新的订单。";
+                orderListElement.appendChild(listItem);
+            } else {
+                availableOrders.forEach(order => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'order-card';
+                    listItem.innerHTML = `
+                        <span>[${order.id.substring(0, 5)}] ${order.restaurant} - ${order.item} -> ${order.location} (奖励: $${order.reward})</span>
+                        <button class="button" onclick="acceptOrder('${order.id}')">接单</button>
+                    `;
+                    orderListElement.appendChild(listItem);
+                });
+            }
+        }
+
+        function refreshOrderList() {
+            availableOrders = Array.from({ length: Math.floor(Math.random() * 3) + 1 }, generateRandomOrder);
+            renderOrders();
+            statusTextElement.textContent = "已刷新订单。";
+        }
+
+        function acceptOrder(orderId) {
+            const order = availableOrders.find(o => o.id === orderId);
+            if (order) {
+                currentOrder = order;
+                availableOrders = availableOrders.filter(o => o.id !== orderId);
+                document.getElementById('order-section').style.display = 'none';
+                deliverySection.style.display = 'block';
+                currentDeliveryElement.textContent = `正在配送订单 ${currentOrder.item} 从 ${currentOrder.restaurant} 到 ${currentOrder.location}.`;
+                statusTextElement.textContent = `已接单，前往 ${currentOrder.restaurant}。`;
+                renderMap(currentLocation, currentOrder.restaurant);
+            }
+        }
+
+        function renderMap(start, end) {
+            let mapText = "--- Map ---\n";
+            mapText += `[ 您 ] -> ${start}\n`;
+            mapText += "      |\n";
+            mapText += "      v\n";
+            mapText += `[ 餐厅 ] -> ${end}\n`;
+            mapText += "         |\n";
+            mapText += "         v\n";
+            mapText += `[ 顾客 ] -> ${currentOrder.location}\n`;
+            mapDisplayElement.textContent = mapText;
+        }
+
+        function completeDelivery() {
+            if (currentOrder) {
+                playerBalance += currentOrder.reward; // 增加余额
+                statusTextElement.textContent = `已完成订单 ${currentOrder.id} 的配送，获得 $${currentOrder.reward}。`;
+                balanceTextElement.textContent = `当前余额: $${playerBalance}`;
+                deliverySection.style.display = 'none';
+                document.getElementById('order-section').style.display = 'block';
+                currentOrder = null;
+                currentLocation = "绿林镇"; // 重置位置
+                refreshOrderList();
+            } else {
+                statusTextElement.textContent = "没有正在进行的配送。";
+            }
+        }
+
+        refreshOrderList();
+        refreshOrdersButton.addEventListener('click', refreshOrderList);
+        completeDeliveryButton.addEventListener('click', completeDelivery);
+    </script>
+</body>
+</html>
